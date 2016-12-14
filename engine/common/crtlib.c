@@ -290,7 +290,7 @@ void Q_atov( float *vec, const char *str, size_t siz )
 	int	j;
 
 	Q_strncpy( buffer, str, sizeof( buffer ));
-	Q_memset( vec, 0, sizeof( vec_t ) * siz );
+	memset( vec, 0, sizeof( vec_t ) * siz );
 	pstr = pfront = buffer;
 
 	for( j = 0; j < siz; j++ )
@@ -668,27 +668,27 @@ char *va( const char *format, ... )
 	return s;
 }
 
-void _Q_memcpy( void *dest, const void *src, size_t count, const char *filename, int fileline )
+void _memcpy( void *dest, const void *src, size_t count, const char *filename, int fileline )
 {
 	if( src == NULL || count <= 0 ) return; // nothing to copy
 	if( dest == NULL ) Sys_Error( "memcpy: dest == NULL (called at %s:%i)\n", filename, fileline );
 	memcpy( dest, src, count );
 }
 
-void _Q_memset( void *dest, int set, size_t count, const char *filename, int fileline )
+void _memset( void *dest, int set, size_t count, const char *filename, int fileline )
 {
 	if( dest == NULL ) Sys_Error( "memset: dest == NULL (called at %s:%i)\n", filename, fileline );
 	memset( dest, set, count );
 }
 
-int _Q_memcmp( const void *src0, const void *src1, size_t count, const char *filename, int fileline )
+int _memcmp( const void *src0, const void *src1, size_t count, const char *filename, int fileline )
 {
 	if( src0 == NULL ) Sys_Error( "memcmp: src1 == NULL (called at %s:%i)\n", filename, fileline );
 	if( src1 == NULL ) Sys_Error( "memcmp: src2 == NULL (called at %s:%i)\n", filename, fileline );
 	return memcmp( src0, src1, count );
 }
 
-void _Q_memmove( void *dest, const void *src, size_t count, const char *filename, int fileline )
+void _memmove( void *dest, const void *src, size_t count, const char *filename, int fileline )
 {
 	if( src == NULL || count <= 0 ) return; // nothing to move
 	if( dest == NULL ) Sys_Error( "memmove: dest == NULL (called at %s:%i)\n", filename, fileline );

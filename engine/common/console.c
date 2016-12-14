@@ -179,7 +179,7 @@ Con_ClearField
 */
 void Con_ClearField( field_t *edit )
 {
-	Q_memset( edit->buffer, 0, MAX_STRING );
+	memset( edit->buffer, 0, MAX_STRING );
 	edit->cursor = 0;
 	edit->scroll = 0;
 }
@@ -343,7 +343,7 @@ void Con_CheckResize( void )
 		if( con.linewidth < numchars )
 			numchars = con.linewidth;
 
-		Q_memcpy( tbuf, con.text, CON_TEXTSIZE * sizeof( short ));
+		memcpy( tbuf, con.text, CON_TEXTSIZE * sizeof( short ));
 
 		for( i = 0; i < CON_TEXTSIZE; i++ )
 			con.text[i] = ( ColorIndex( COLOR_DEFAULT ) << 8 ) | ' ';
@@ -630,7 +630,7 @@ int Con_DrawGenericString( int x, int y, const char *string, rgba_t setColor, qb
 		{
 			if( !forceColor )
 			{
-				Q_memcpy( color, g_color_table[ColorIndex(*(s+1))], sizeof( color ));
+				memcpy( color, g_color_table[ColorIndex(*(s+1))], sizeof( color ));
 				color[3] = setColor[3];
 			}
 
@@ -799,7 +799,7 @@ void Con_NPrintf( int idx, char *fmt, ... )
 	if( idx < 0 || idx >= MAX_DBG_NOTIFY )
 		return;
 
-	Q_memset( con.notify[idx].szNotify, 0, MAX_STRING );
+	memset( con.notify[idx].szNotify, 0, MAX_STRING );
 
 	va_start( args, fmt );
 	Q_vsnprintf( con.notify[idx].szNotify, MAX_STRING, fmt, args );
@@ -828,7 +828,7 @@ void Con_NXPrintf( con_nprint_t *info, char *fmt, ... )
 	if( info->index < 0 || info->index >= MAX_DBG_NOTIFY )
 		return;
 
-	Q_memset( con.notify[info->index].szNotify, 0, MAX_STRING );
+	memset( con.notify[info->index].szNotify, 0, MAX_STRING );
 
 	va_start( args, fmt );
 	Q_vsnprintf( con.notify[info->index].szNotify, MAX_STRING, fmt, args );
@@ -855,7 +855,7 @@ void UI_NPrintf( int idx, char *fmt, ... )
 	if( idx < 0 || idx >= MAX_DBG_NOTIFY )
 		return;
 
-	Q_memset( con.notify[idx].szNotify, 0, MAX_STRING );
+	memset( con.notify[idx].szNotify, 0, MAX_STRING );
 
 	va_start( args, fmt );
 	Q_vsnprintf( con.notify[idx].szNotify, MAX_STRING, fmt, args );
@@ -884,7 +884,7 @@ void UI_NXPrintf( con_nprint_t *info, char *fmt, ... )
 	if( info->index < 0 || info->index >= MAX_DBG_NOTIFY )
 		return;
 
-	Q_memset( con.notify[info->index].szNotify, 0, MAX_STRING );
+	memset( con.notify[info->index].szNotify, 0, MAX_STRING );
 
 	va_start( args, fmt );
 	Q_vsnprintf( con.notify[info->index].szNotify, MAX_STRING, fmt, args );
@@ -1045,7 +1045,7 @@ void Con_CompleteCommand( field_t *field )
 
 	if( !con.matchCount ) return; // no matches
 
-	Q_memcpy( &temp, con.completionField, sizeof( field_t ));
+	memcpy( &temp, con.completionField, sizeof( field_t ));
 
 	if(( Cmd_Argc() == 2 ) || (( Cmd_Argc() == 1 ) && nextcmd ))
 	{
@@ -1164,7 +1164,7 @@ void Field_KeyDownEvent( field_t *edit, int key )
 	if( key == K_DEL )
 	{
 		if( edit->cursor < len )
-			Q_memmove( edit->buffer + edit->cursor, edit->buffer + edit->cursor + 1, len - edit->cursor );
+			memmove( edit->buffer + edit->cursor, edit->buffer + edit->cursor + 1, len - edit->cursor );
 		return;
 	}
 
@@ -1172,7 +1172,7 @@ void Field_KeyDownEvent( field_t *edit, int key )
 	{
 		if( edit->cursor > 0 )
 		{
-			Q_memmove( edit->buffer + edit->cursor - 1, edit->buffer + edit->cursor, len - edit->cursor + 1 );
+			memmove( edit->buffer + edit->cursor - 1, edit->buffer + edit->cursor, len - edit->cursor + 1 );
 			edit->cursor--;
 			if( edit->scroll ) edit->scroll--;
 		}
@@ -1267,7 +1267,7 @@ void Field_CharEvent( field_t *edit, int ch )
 	{
 		// insert mode
 		if ( len == MAX_STRING - 1 ) return; // all full
-		Q_memmove( edit->buffer + edit->cursor + 1, edit->buffer + edit->cursor, len + 1 - edit->cursor );
+		memmove( edit->buffer + edit->cursor + 1, edit->buffer + edit->cursor, len + 1 - edit->cursor );
 		edit->buffer[edit->cursor] = ch;
 		edit->cursor++;
 	}
@@ -1315,7 +1315,7 @@ void Field_DrawInputLine( int x, int y, field_t *edit )
 	// extract <drawLen> characters from the field at <prestep>
 	ASSERT( drawLen < MAX_SYSPATH );
 
-	Q_memcpy( str, edit->buffer + prestep, drawLen );
+	memcpy( str, edit->buffer + prestep, drawLen );
 	str[drawLen] = 0;
 
 	// save char for overstrike
@@ -1992,7 +1992,7 @@ void Con_VidInit( void )
 
 void Con_InvalidateFonts( void )
 {
-	Q_memset( con.chars, 0, sizeof( con.chars ));
+	memset( con.chars, 0, sizeof( con.chars ));
 	con.curFont = con.lastUsedFont = NULL;
 }
 

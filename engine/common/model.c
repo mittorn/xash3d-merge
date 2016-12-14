@@ -198,8 +198,8 @@ Mod_SetupHulls
 */
 void Mod_SetupHulls( vec3_t mins[MAX_MAP_HULLS], vec3_t maxs[MAX_MAP_HULLS] )
 {
-	Q_memcpy( mins, cm_hullmins, sizeof( cm_hullmins ));
-	Q_memcpy( maxs, cm_hullmaxs, sizeof( cm_hullmaxs ));
+	memcpy( mins, cm_hullmins, sizeof( cm_hullmins ));
+	memcpy( maxs, cm_hullmaxs, sizeof( cm_hullmaxs ));
 }
 
 /*
@@ -939,8 +939,8 @@ static void Mod_LoadTextures( const dlump_t *l )
 			continue;	// allready sequenced
 
 		// find the number of frames in the animation
-		Q_memset( anims, 0, sizeof( anims ));
-		Q_memset( altanims, 0, sizeof( altanims ));
+		memset( anims, 0, sizeof( anims ));
+		memset( altanims, 0, sizeof( altanims ));
 
 		max = tx->name[1];
 		altmax = 0;
@@ -1024,7 +1024,7 @@ static void Mod_LoadTextures( const dlump_t *l )
 			continue;	// allready sequenced
 
 		// find the number of frames in the sequence
-		Q_memset( anims, 0, sizeof( anims ));
+		memset( anims, 0, sizeof( anims ));
 
 		max = tx->name[1];
 
@@ -1176,7 +1176,7 @@ static void Mod_LoadDeluxemap( void )
 
 	MsgDev( D_INFO, "Mod_LoadDeluxemap: %s loaded\n", path );
 	world.deluxedata = Mem_Alloc( loadmodel->mempool, world.vecdatasize );
-	Q_memcpy( world.deluxedata, in + 8, world.vecdatasize );
+	memcpy( world.deluxedata, in + 8, world.vecdatasize );
 	Mem_Free( in );
 }
 
@@ -1225,7 +1225,7 @@ static void Mod_LoadLighting( const dlump_t *l )
 	case XTBSP_VERSION:
 		// load colored lighting
 		loadmodel->lightdata = Mem_Alloc( loadmodel->mempool, l->filelen );
-		Q_memcpy( loadmodel->lightdata, in, l->filelen );
+		memcpy( loadmodel->lightdata, in, l->filelen );
 		break;
 	}
 
@@ -1403,7 +1403,7 @@ static void Mod_BuildPolygon( mextrasurf_t *info, msurface_t *surf, int numVerts
 		out->lmcoord[1] = t;
 
 		// clear colors (it can be used for vertex lighting)
-		Q_memset( out->color, 0xFF, sizeof( out->color ));
+		memset( out->color, 0xFF, sizeof( out->color ));
 	}
 }
 
@@ -1579,7 +1579,7 @@ static void Mod_SubdividePolygon( mextrasurf_t *info, msurface_t *surf, int numV
 		totalLM[1] += t;
 
 		// clear colors (it can be used for vertex lighting)
-		Q_memset( out->color, 0xFF, sizeof( out->color ));
+		memset( out->color, 0xFF, sizeof( out->color ));
 	}
 
 	// vertex
@@ -1603,7 +1603,7 @@ static void Mod_SubdividePolygon( mextrasurf_t *info, msurface_t *surf, int numV
 	mesh->verts[0].lmcoord[1] = totalLM[1] * oneDivVerts;
 
 	// copy first vertex to last
-	Q_memcpy( &mesh->verts[i+1], &mesh->verts[1], sizeof( glvert_t ));
+	memcpy( &mesh->verts[i+1], &mesh->verts[1], sizeof( glvert_t ));
 
 	mesh->next = info->mesh;
 	mesh->surf = surf;	// NOTE: meshchains can be linked with one surface
@@ -1675,7 +1675,7 @@ static void Mod_ConvertSurface( mextrasurf_t *info, msurface_t *surf )
 			outElems[i*3+2] = numVerts + i + 2;
 		}
 
-		Q_memcpy( outVerts, poly->verts, sizeof( glvert_t ) * poly->numVerts );
+		memcpy( outVerts, poly->verts, sizeof( glvert_t ) * poly->numVerts );
 
 		numElems += (poly->numVerts - 2) * 3;
 		numVerts += poly->numVerts;
@@ -1996,7 +1996,7 @@ static void Mod_LoadSurfEdges( const dlump_t *l )
 	loadmodel->surfedges = Mem_Alloc( loadmodel->mempool, count * sizeof( dsurfedge_t ));
 	loadmodel->numsurfedges = count;
 
-	Q_memcpy( loadmodel->surfedges, in, count * sizeof( dsurfedge_t ));
+	memcpy( loadmodel->surfedges, in, count * sizeof( dsurfedge_t ));
 }
 
 /*
@@ -2196,7 +2196,7 @@ static void Mod_LoadVisibility( const dlump_t *l )
 	}
 
 	loadmodel->visdata = Mem_Alloc( loadmodel->mempool, l->filelen );
-	Q_memcpy( loadmodel->visdata, (void *)(mod_base + l->fileofs), l->filelen );
+	memcpy( loadmodel->visdata, (void *)(mod_base + l->fileofs), l->filelen );
 	world.visdatasize = l->filelen; // save it for PHS allocation
 }
 
@@ -2213,7 +2213,7 @@ static void Mod_LoadEntities( const dlump_t *l )
 
 	// make sure what we really has terminator
 	loadmodel->entities = Mem_Alloc( loadmodel->mempool, l->filelen + 1 );
-	Q_memcpy( loadmodel->entities, mod_base + l->fileofs, l->filelen );
+	memcpy( loadmodel->entities, mod_base + l->fileofs, l->filelen );
 	if( !world.loading ) return;
 
 	world.entdatasize = l->filelen;
@@ -2558,7 +2558,7 @@ void Mod_CalcPHS( void )
 	// uncompress pvs first
 	for( i = 0; i < num; i++, scan += rowbytes )
 	{
-		Q_memcpy( scan, Mod_LeafPVS( worldmodel->leafs + i, worldmodel ), rowbytes );
+		memcpy( scan, Mod_LeafPVS( worldmodel->leafs + i, worldmodel ), rowbytes );
 		if( i == 0 ) continue;
 
 		for( j = 0; j < num; j++ )
@@ -2575,7 +2575,7 @@ void Mod_CalcPHS( void )
 
 	for( i = 0; i < num; i++, dest += rowwords, scan += rowbytes )
 	{
-		Q_memcpy( dest, scan, rowbytes );
+		memcpy( dest, scan, rowbytes );
 
 		for( j = 0; j < rowbytes; j++ )
 		{
@@ -2607,7 +2607,7 @@ void Mod_CalcPHS( void )
 			Host_Error( "CalcPHS: vismap expansion overflow %s > %s\n", Q_memprint( total_size ), Q_memprint( phsdatasize ));
 		}
 
-		Q_memcpy( vismap_p, comp, rowsize );
+		memcpy( vismap_p, comp, rowsize );
 		vismap_p += rowsize; // move pointer
 
 		if( i == 0 ) continue;
@@ -2669,7 +2669,7 @@ void Mod_UnloadBrushModel( model_t *mod )
 		Mem_FreePool( &mod->mempool );
 	}
 
-	Q_memset( mod, 0, sizeof( *mod ));
+	memset( mod, 0, sizeof( *mod ));
 }
 
 /*
@@ -2925,7 +2925,7 @@ model_t *Mod_LoadModel( model_t *mod, qboolean crash )
 
 	if( !buf )
 	{
-		Q_memset( mod, 0, sizeof( model_t ));
+		memset( mod, 0, sizeof( model_t ));
 
 		if( crash ) Host_Error( "Mod_ForName: %s couldn't load\n", tempname );
 		else MsgDev( D_ERROR, "Mod_ForName: %s couldn't load\n", tempname );
@@ -3009,7 +3009,7 @@ void Mod_LoadWorld( const char *name, uint *checksum, qboolean multiplayer )
 	int	i;
 
 	// now replacement table is invalidate
-	Q_memset( com_models, 0, sizeof( com_models ));
+	memset( com_models, 0, sizeof( com_models ));
 
 	com_models[1] = cm_models; // make link to world
 
@@ -3192,7 +3192,7 @@ void Mod_LoadCacheFile( const char *filename, cache_user_t *cu )
 	buf = FS_LoadFile( name, &size, false );
 	if( !buf || !size ) Host_Error( "LoadCacheFile: ^1can't load %s^7\n", filename );
 	cu->data = Mem_Alloc( com_studiocache, size );
-	Q_memcpy( cu->data, buf, size );
+	memcpy( cu->data, buf, size );
 	Mem_Free( buf );
 }
 

@@ -90,7 +90,7 @@ static _inline void Huff_PrepareTree( tree_t tree )
 {
 	void	**node;
 	
-	Q_memset( tree, 0, sizeof( tree_t ));
+	memset( tree, 0, sizeof( tree_t ));
 	
 	// create first node
 	node = &tree[263];
@@ -513,8 +513,8 @@ void Huff_CompressPacket( sizebuf_t *msg, int offset )
 	int	outLen;
 	int	i, inLen;
 
-	data = BF_GetData( msg ) + offset;
-	inLen = BF_GetNumBytesWritten( msg ) - offset;	
+	data = MSG_GetData( msg ) + offset;
+	inLen = MSG_GetNumBytesWritten( msg ) - offset;	
 	if( inLen <= 0 || inLen >= NET_MAX_PAYLOAD )
 		return;
 
@@ -532,7 +532,7 @@ void Huff_CompressPacket( sizebuf_t *msg, int offset )
 	
 	outLen = (huffBitPos >> 3) + 1;
 	msg->iCurBit = (offset + outLen) << 3;
-	Q_memcpy( data, buffer, outLen );
+	memcpy( data, buffer, outLen );
 }
 
 /*
@@ -552,8 +552,8 @@ void Huff_DecompressPacket( sizebuf_t *msg, int offset )
 	int	inLen;
 	int	ch, i, j;
 
-	data = BF_GetData( msg ) + offset;
-	inLen = BF_GetMaxBytes( msg ) - offset;
+	data = MSG_GetData( msg ) + offset;
+	inLen = MSG_GetMaxBytes( msg ) - offset;
 	if( inLen <= 0 ) return;
 
 	Huff_PrepareTree( tree );
@@ -588,7 +588,7 @@ void Huff_DecompressPacket( sizebuf_t *msg, int offset )
 	}
 
 	msg->nDataBits = ( offset + outLen ) << 3;
-	Q_memcpy( data, buffer, outLen );
+	memcpy( data, buffer, outLen );
 }
 
 /*

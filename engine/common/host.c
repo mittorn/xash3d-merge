@@ -252,7 +252,7 @@ void Host_Exec_f( void )
 
 	// adds \n\0 at end of the file
 	txt = Z_Malloc( len + 2 );
-	Q_memcpy( txt, f, len );
+	memcpy( txt, f, len );
 	Q_strncat( txt, "\n", len + 2 );
 	Mem_Free( f );
 
@@ -348,7 +348,7 @@ void Host_InitDecals( void )
 	search_t	*t;
 	int	i;
 
-	Q_memset( host.draw_decals, 0, sizeof( host.draw_decals ));
+	memset( host.draw_decals, 0, sizeof( host.draw_decals ));
 	num_decals = 0;
 
 	// lookup all decals in decals.wad

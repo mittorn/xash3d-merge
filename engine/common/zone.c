@@ -115,7 +115,7 @@ loopcontinue:;
 		pool->realsize += sizeof( memclump_t );
 		clump = malloc( sizeof( memclump_t ));
 		if( clump == NULL ) Sys_Error( "Mem_Alloc: out of memory (alloc at %s:%i)\n", filename, fileline );
-		_Q_memset( clump, 0, sizeof( memclump_t ), filename, fileline );
+		_memset( clump, 0, sizeof( memclump_t ), filename, fileline );
 		*clumpchainpointer = clump;
 		clump->sentinel1 = MEMCLUMP_SENTINEL;
 		clump->sentinel2 = MEMCLUMP_SENTINEL;
@@ -153,7 +153,7 @@ choseclump:
 	mem->prev = NULL;
 	pool->chain = mem;
 	if( mem->next ) mem->next->prev = mem;
-	_Q_memset((void *)((byte *)mem + sizeof( memheader_t )), 0, mem->size, filename, fileline );
+	_memset((void *)((byte *)mem + sizeof( memheader_t )), 0, mem->size, filename, fileline );
 
 	return (void *)((byte *)mem + sizeof( memheader_t ));
 }
@@ -232,7 +232,7 @@ static void Mem_FreeBlock( memheader_t *mem, const char *filename, int fileline 
 			}
 
 			pool->realsize -= sizeof( memclump_t );
-			_Q_memset( clump, 0xBF, sizeof( memclump_t ), filename, fileline );
+			_memset( clump, 0xBF, sizeof( memclump_t ), filename, fileline );
 			free( clump );
 		}
 		else
@@ -276,7 +276,7 @@ void *_Mem_Realloc( byte *poolptr, void *memptr, size_t size, const char *filena
 
 		// get size of old block
 		newsize = memhdr->size < size ? memhdr->size : size; // upper data can be trucnated!
-		_Q_memcpy( nb, memptr, newsize, filename, fileline );
+		_memcpy( nb, memptr, newsize, filename, fileline );
 		_Mem_Free( memptr, filename, fileline ); // free unused old block
           }
 
@@ -289,7 +289,7 @@ byte *_Mem_AllocPool( const char *name, const char *filename, int fileline )
 
 	pool = (mempool_t *)malloc( sizeof( mempool_t ));
 	if( pool == NULL ) Sys_Error( "Mem_AllocPool: out of memory (allocpool at %s:%i)\n", filename, fileline );
-	_Q_memset( pool, 0, sizeof( mempool_t ), filename, fileline );
+	_memset( pool, 0, sizeof( mempool_t ), filename, fileline );
 
 	// fill header
 	pool->sentinel1 = MEMHEADER_SENTINEL1;
@@ -323,7 +323,7 @@ void _Mem_FreePool( byte **poolptr, const char *filename, int fileline )
 		// free memory owned by the pool
 		while( pool->chain ) Mem_FreeBlock( pool->chain, filename, fileline );
 		// free the pool itself
-		_Q_memset( pool, 0xBF, sizeof( mempool_t ), filename, fileline );
+		_memset( pool, 0xBF, sizeof( mempool_t ), filename, fileline );
 		free( pool );
 		*poolptr = NULL;
 	}

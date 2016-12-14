@@ -282,8 +282,8 @@ qboolean SV_Send( int dest, const vec3_t origin, const edict_t *ent )
 		if( sv.state == ss_loading )
 		{
 			// copy to signon buffer
-			BF_WriteBits( &sv.signon, BF_GetData( &sv.multicast ), BF_GetNumBitsWritten( &sv.multicast ));
-			BF_Clear( &sv.multicast );
+			MSG_WriteBits( &sv.signon, MSG_GetData( &sv.multicast ), MSG_GetNumBitsWritten( &sv.multicast ));
+			MSG_Clear( &sv.multicast );
 			return true;
 		}
 		// intentional fallthrough (in-game MSG_INIT it's a MSG_ALL reliable)
@@ -351,13 +351,13 @@ qboolean SV_Send( int dest, const vec3_t origin, const edict_t *ent )
 		if( !SV_CheckClientVisiblity( cl, mask ))
 			continue;
 
-		if( specproxy ) BF_WriteBits( &sv.spectator_datagram, BF_GetData( &sv.multicast ), BF_GetNumBitsWritten( &sv.multicast ));
-		else if( reliable ) BF_WriteBits( &cl->netchan.message, BF_GetData( &sv.multicast ), BF_GetNumBitsWritten( &sv.multicast ));
-		else BF_WriteBits( &cl->datagram, BF_GetData( &sv.multicast ), BF_GetNumBitsWritten( &sv.multicast ));
+		if( specproxy ) MSG_WriteBits( &sv.spectator_datagram, MSG_GetData( &sv.multicast ), MSG_GetNumBitsWritten( &sv.multicast ));
+		else if( reliable ) MSG_WriteBits( &cl->netchan.message, MSG_GetData( &sv.multicast ), MSG_GetNumBitsWritten( &sv.multicast ));
+		else MSG_WriteBits( &cl->datagram, MSG_GetData( &sv.multicast ), MSG_GetNumBitsWritten( &sv.multicast ));
 		numsends++;
 	}
 
-	BF_Clear( &sv.multicast );
+	MSG_Clear( &sv.multicast );
 
 	return numsends;	// debug
 }
@@ -400,18 +400,18 @@ void SV_CreateDecal( sizebuf_t *msg, const float *origin, int decalIndex, int en
 		return;
 
 	// this can happens if serialized map contain 4096 static decals...
-	if(( BF_GetNumBytesWritten( msg ) + 20 ) >= BF_GetMaxBytes( msg ))
+	if(( MSG_GetNumBytesWritten( msg ) + 20 ) >= MSG_GetMaxBytes( msg ))
 		return;
 
 	// static decals are posters, it's always reliable
-	BF_WriteByte( msg, svc_bspdecal );
-	BF_WriteVec3Coord( msg, origin );
-	BF_WriteWord( msg, decalIndex );
-	BF_WriteShort( msg, entityIndex );
+	MSG_WriteByte( msg, svc_bspdecal );
+	MSG_WriteVec3Coord( msg, origin );
+	MSG_WriteWord( msg, decalIndex );
+	MSG_WriteShort( msg, entityIndex );
 	if( entityIndex > 0 )
-		BF_WriteWord( msg, modelIndex );
-	BF_WriteByte( msg, flags );
-	BF_WriteWord( msg, scale * 4096 );
+		MSG_WriteWord( msg, modelIndex );
+	MSG_WriteByte( msg, flags );
+	MSG_WriteWord( msg, scale * 4096 );
 }
 
 /*
@@ -434,29 +434,29 @@ void SV_CreateStudioDecal( sizebuf_t *msg, const float *origin, const float *sta
 	ASSERT( start );
 
 	// this can happens if serialized map contain 4096 static decals...
-	if(( BF_GetNumBytesWritten( msg ) + 30 ) >= BF_GetMaxBytes( msg ))
+	if(( MSG_GetNumBytesWritten( msg ) + 30 ) >= MSG_GetMaxBytes( msg ))
 		return;
 
 	// static decals are posters, it's always reliable
-	BF_WriteByte( msg, svc_studiodecal );
-	BF_WriteVec3Coord( msg, origin );
-	BF_WriteVec3Coord( msg, start );
-	BF_WriteWord( msg, decalIndex );
-	BF_WriteWord( msg, entityIndex );
-	BF_WriteByte( msg, flags );
+	MSG_WriteByte( msg, svc_studiodecal );
+	MSG_WriteVec3Coord( msg, origin );
+	MSG_WriteVec3Coord( msg, start );
+	MSG_WriteWord( msg, decalIndex );
+	MSG_WriteWord( msg, entityIndex );
+	MSG_WriteByte( msg, flags );
 
 	// write model state
-	BF_WriteShort( msg, state->sequence );
-	BF_WriteShort( msg, state->frame );
-	BF_WriteByte( msg, state->blending[0] );
-	BF_WriteByte( msg, state->blending[1] );
-	BF_WriteByte( msg, state->controller[0] );
-	BF_WriteByte( msg, state->controller[1] );
-	BF_WriteByte( msg, state->controller[2] );
-	BF_WriteByte( msg, state->controller[3] );
-	BF_WriteWord( msg, modelIndex );
-	BF_WriteByte( msg, state->body );
-	BF_WriteByte( msg, state->skin );
+	MSG_WriteShort( msg, state->sequence );
+	MSG_WriteShort( msg, state->frame );
+	MSG_WriteByte( msg, state->blending[0] );
+	MSG_WriteByte( msg, state->blending[1] );
+	MSG_WriteByte( msg, state->controller[0] );
+	MSG_WriteByte( msg, state->controller[1] );
+	MSG_WriteByte( msg, state->controller[2] );
+	MSG_WriteByte( msg, state->controller[3] );
+	MSG_WriteWord( msg, modelIndex );
+	MSG_WriteByte( msg, state->body );
+	MSG_WriteByte( msg, state->skin );
 }
 
 /*
@@ -471,33 +471,33 @@ void SV_CreateStaticEntity( sizebuf_t *msg, sv_static_entity_t *ent )
 	int	index, i;
 
 	// this can happens if serialized map contain too many static entities...
-	if(( BF_GetNumBytesWritten( msg ) + 64 ) >= BF_GetMaxBytes( msg ))
+	if(( MSG_GetNumBytesWritten( msg ) + 64 ) >= MSG_GetMaxBytes( msg ))
 		return;
 
 	index = SV_ModelIndex( ent->model );
 
-	BF_WriteByte( msg, svc_spawnstatic );
-	BF_WriteShort(msg, index );
-	BF_WriteByte( msg, ent->sequence );
-	BF_WriteByte( msg, ent->frame );
-	BF_WriteWord( msg, ent->colormap );
-	BF_WriteByte( msg, ent->skin );
+	MSG_WriteByte( msg, svc_spawnstatic );
+	MSG_WriteShort(msg, index );
+	MSG_WriteByte( msg, ent->sequence );
+	MSG_WriteByte( msg, ent->frame );
+	MSG_WriteWord( msg, ent->colormap );
+	MSG_WriteByte( msg, ent->skin );
 
 	for( i = 0; i < 3; i++ )
 	{
-		BF_WriteCoord( msg, ent->origin[i] );
-		BF_WriteBitAngle( msg, ent->angles[i], 16 );
+		MSG_WriteCoord( msg, ent->origin[i] );
+		MSG_WriteBitAngle( msg, ent->angles[i], 16 );
 	}
 
-	BF_WriteByte( msg, ent->rendermode );
+	MSG_WriteByte( msg, ent->rendermode );
 
 	if( ent->rendermode != kRenderNormal )
 	{
-		BF_WriteByte( msg, ent->renderamt );
-		BF_WriteByte( msg, ent->rendercolor.r );
-		BF_WriteByte( msg, ent->rendercolor.g );
-		BF_WriteByte( msg, ent->rendercolor.b );
-		BF_WriteByte( msg, ent->renderfx );
+		MSG_WriteByte( msg, ent->renderamt );
+		MSG_WriteByte( msg, ent->rendercolor.r );
+		MSG_WriteByte( msg, ent->rendercolor.g );
+		MSG_WriteByte( msg, ent->rendercolor.b );
+		MSG_WriteByte( msg, ent->renderfx );
 	}
 }
 
@@ -609,7 +609,7 @@ void SV_WriteEntityPatch( const char *filename )
 	f = FS_Open( va( "maps/%s.bsp", filename ), "rb", false );
 	if( !f ) return;
 
-	Q_memset( buf, 0, MAX_SYSPATH );
+	memset( buf, 0, MAX_SYSPATH );
 	FS_Read( f, buf, MAX_SYSPATH );
 	ver = *(uint *)buf;
                               
@@ -676,7 +676,7 @@ char *SV_ReadEntityScript( const char *filename, int *flags )
 
 	*flags |= MAP_IS_EXIST;
 
-	Q_memset( buf, 0, MAX_SYSPATH );
+	memset( buf, 0, MAX_SYSPATH );
 	FS_Read( f, buf, MAX_SYSPATH );
 	ver = *(uint *)buf;
                               
@@ -820,7 +820,7 @@ void SV_InitEdict( edict_t *pEdict )
 	ASSERT( pEdict );
 
 	SV_FreePrivateData( pEdict );
-	Q_memset( &pEdict->v, 0, sizeof( entvars_t ));
+	memset( &pEdict->v, 0, sizeof( entvars_t ));
 
 	// g-cont. trying to setup controllers here...
 	pEdict->v.controller[0] = 0x7F;
@@ -961,20 +961,20 @@ void SV_PlaybackReliableEvent( sizebuf_t *msg, word eventindex, float delay, eve
 {
 	event_args_t nullargs;
 
-	Q_memset( &nullargs, 0, sizeof( nullargs ));
+	memset( &nullargs, 0, sizeof( nullargs ));
 
-	BF_WriteByte( msg, svc_event_reliable );
+	MSG_WriteByte( msg, svc_event_reliable );
 
 	// send event index
-	BF_WriteUBitLong( msg, eventindex, MAX_EVENT_BITS );
+	MSG_WriteUBitLong( msg, eventindex, MAX_EVENT_BITS );
 
 	if( delay )
 	{
 		// send event delay
-		BF_WriteOneBit( msg, 1 );
-		BF_WriteWord( msg, Q_rint( delay * 100.0f ));
+		MSG_WriteOneBit( msg, 1 );
+		MSG_WriteWord( msg, Q_rint( delay * 100.0f ));
 	}
-	else BF_WriteOneBit( msg, 0 );
+	else MSG_WriteOneBit( msg, 0 );
 
 	// reliable events not use delta-compression just null-compression
 	MSG_WriteDeltaEvent( msg, &nullargs, args );
@@ -1056,7 +1056,7 @@ void SV_BaselineForEntity( edict_t *pEdict )
 	}
 
 	// take current state as baseline
-	Q_memset( &baseline, 0, sizeof( baseline )); 
+	memset( &baseline, 0, sizeof( baseline )); 
 	baseline.number = NUM_FOR_EDICT( pEdict );
 
 	svgame.dllFuncs.pfnCreateBaseline( player, baseline.number, &baseline, pEdict, modelindex, mins, maxs );
@@ -1473,7 +1473,7 @@ int SV_CheckClientPVS( int check, qboolean bMergePVS )
 	VectorAdd( ent->v.origin, ent->v.view_ofs, view );
 	leaf = Mod_PointInLeaf( view, sv.worldmodel->nodes );
 	pvs = Mod_LeafPVS( leaf, sv.worldmodel );
-	Q_memcpy( clientpvs, pvs, pvsbytes );
+	memcpy( clientpvs, pvs, pvsbytes );
 
 	// transition in progress
 	if( !cl ) return i;
@@ -1893,19 +1893,19 @@ int SV_BuildSoundMsg( edict_t *ent, int chan, const char *samp, int vol, float a
 	// not sending (because this is out of range)
 	flags &= ~SND_SPAWNING;
 
-	BF_WriteByte( &sv.multicast, svc_sound );
-	BF_WriteWord( &sv.multicast, flags );
+	MSG_WriteByte( &sv.multicast, svc_sound );
+	MSG_WriteWord( &sv.multicast, flags );
 	if( flags & SND_LARGE_INDEX )
-		BF_WriteWord( &sv.multicast, sound_idx );
-	else BF_WriteByte( &sv.multicast, sound_idx );
-	BF_WriteByte( &sv.multicast, chan );
+		MSG_WriteWord( &sv.multicast, sound_idx );
+	else MSG_WriteByte( &sv.multicast, sound_idx );
+	MSG_WriteByte( &sv.multicast, chan );
 
-	if( flags & SND_VOLUME ) BF_WriteByte( &sv.multicast, vol );
-	if( flags & SND_ATTENUATION ) BF_WriteByte( &sv.multicast, attn * 64 );
-	if( flags & SND_PITCH ) BF_WriteByte( &sv.multicast, pitch );
+	if( flags & SND_VOLUME ) MSG_WriteByte( &sv.multicast, vol );
+	if( flags & SND_ATTENUATION ) MSG_WriteByte( &sv.multicast, attn * 64 );
+	if( flags & SND_PITCH ) MSG_WriteByte( &sv.multicast, pitch );
 
-	BF_WriteWord( &sv.multicast, entityIndex );
-	BF_WriteVec3Coord( &sv.multicast, pos );
+	MSG_WriteWord( &sv.multicast, entityIndex );
+	MSG_WriteVec3Coord( &sv.multicast, pos );
 
 	return 1;
 }
@@ -1985,19 +1985,19 @@ void SV_StartSound( edict_t *ent, int chan, const char *sample, float vol, float
 	// not sending (because this is out of range)
 	flags &= ~SND_SPAWNING;
 
-	BF_WriteByte( &sv.multicast, svc_sound );
-	BF_WriteWord( &sv.multicast, flags );
+	MSG_WriteByte( &sv.multicast, svc_sound );
+	MSG_WriteWord( &sv.multicast, flags );
 	if( flags & SND_LARGE_INDEX )
-		BF_WriteWord( &sv.multicast, sound_idx );
-	else BF_WriteByte( &sv.multicast, sound_idx );
-	BF_WriteByte( &sv.multicast, chan );
+		MSG_WriteWord( &sv.multicast, sound_idx );
+	else MSG_WriteByte( &sv.multicast, sound_idx );
+	MSG_WriteByte( &sv.multicast, chan );
 
-	if( flags & SND_VOLUME ) BF_WriteByte( &sv.multicast, vol * 255 );
-	if( flags & SND_ATTENUATION ) BF_WriteByte( &sv.multicast, attn * 64 );
-	if( flags & SND_PITCH ) BF_WriteByte( &sv.multicast, pitch );
+	if( flags & SND_VOLUME ) MSG_WriteByte( &sv.multicast, vol * 255 );
+	if( flags & SND_ATTENUATION ) MSG_WriteByte( &sv.multicast, attn * 64 );
+	if( flags & SND_PITCH ) MSG_WriteByte( &sv.multicast, pitch );
 
-	BF_WriteWord( &sv.multicast, entityIndex );
-	BF_WriteVec3Coord( &sv.multicast, origin );
+	MSG_WriteWord( &sv.multicast, entityIndex );
+	MSG_WriteVec3Coord( &sv.multicast, origin );
 
 	SV_Send( msg_dest, origin, NULL );
 }
@@ -2064,20 +2064,20 @@ void pfnEmitAmbientSound( edict_t *ent, float *pos, const char *sample, float vo
 	// not sending (because this is out of range)
 	flags &= ~SND_SPAWNING;
 
-	BF_WriteByte( &sv.multicast, svc_ambientsound );
-	BF_WriteWord( &sv.multicast, flags );
+	MSG_WriteByte( &sv.multicast, svc_ambientsound );
+	MSG_WriteWord( &sv.multicast, flags );
 	if( flags & SND_LARGE_INDEX )
-		BF_WriteWord( &sv.multicast, sound_idx );
-	else BF_WriteByte( &sv.multicast, sound_idx );
-	BF_WriteByte( &sv.multicast, CHAN_STATIC );
+		MSG_WriteWord( &sv.multicast, sound_idx );
+	else MSG_WriteByte( &sv.multicast, sound_idx );
+	MSG_WriteByte( &sv.multicast, CHAN_STATIC );
 
-	if( flags & SND_VOLUME ) BF_WriteByte( &sv.multicast, vol * 255 );
-	if( flags & SND_ATTENUATION ) BF_WriteByte( &sv.multicast, attn * 64 );
-	if( flags & SND_PITCH ) BF_WriteByte( &sv.multicast, pitch );
+	if( flags & SND_VOLUME ) MSG_WriteByte( &sv.multicast, vol * 255 );
+	if( flags & SND_ATTENUATION ) MSG_WriteByte( &sv.multicast, attn * 64 );
+	if( flags & SND_PITCH ) MSG_WriteByte( &sv.multicast, pitch );
 
 	// plays from fixed position
-	BF_WriteWord( &sv.multicast, number );
-	BF_WriteVec3Coord( &sv.multicast, pos );
+	MSG_WriteWord( &sv.multicast, number );
+	MSG_WriteVec3Coord( &sv.multicast, pos );
 
 	SV_Send( msg_dest, pos, NULL );
 }
@@ -2090,8 +2090,8 @@ SV_StartMusic
 */
 void SV_StartMusic( const char *curtrack, const char *looptrack, fs_offset_t position )
 {
-	BF_WriteByte( &sv.multicast, svc_stufftext );
-	BF_WriteString( &sv.multicast, va( "music \"%s\" \"%s\" %i\n", curtrack, looptrack, position ));
+	MSG_WriteByte( &sv.multicast, svc_stufftext );
+	MSG_WriteString( &sv.multicast, va( "music \"%s\" \"%s\" %i\n", curtrack, looptrack, position ));
 	SV_Send( MSG_ALL, NULL, NULL );
 }
 
@@ -2366,8 +2366,8 @@ void pfnClientCommand( edict_t* pEdict, char* szFmt, ... )
 
 	if( SV_IsValidCmd( buffer ))
 	{
-		BF_WriteByte( &client->netchan.message, svc_stufftext );
-		BF_WriteString( &client->netchan.message, buffer );
+		MSG_WriteByte( &client->netchan.message, svc_stufftext );
+		MSG_WriteString( &client->netchan.message, buffer );
 	}
 	else MsgDev( D_ERROR, "Tried to stuff bad command %s\n", buffer );
 }
@@ -2390,18 +2390,18 @@ void pfnParticleEffect( const float *org, const float *dir, float color, float c
 		return;
 	}
 
-	BF_WriteByte( &sv.datagram, svc_particle );
-	BF_WriteVec3Coord( &sv.datagram, org );
+	MSG_WriteByte( &sv.datagram, svc_particle );
+	MSG_WriteVec3Coord( &sv.datagram, org );
 
 	for( i = 0; i < 3; i++ )
 	{
 		v = bound( -128, dir[i] * 16.0f, 127 );
-		BF_WriteChar( &sv.datagram, v );
+		MSG_WriteChar( &sv.datagram, v );
 	}
 
-	BF_WriteByte( &sv.datagram, count );
-	BF_WriteByte( &sv.datagram, color );
-	BF_WriteByte( &sv.datagram, 0 );
+	MSG_WriteByte( &sv.datagram, count );
+	MSG_WriteByte( &sv.datagram, color );
+	MSG_WriteByte( &sv.datagram, 0 );
 }
 
 /*
@@ -2503,7 +2503,7 @@ void pfnMessageBegin( int msg_dest, int msg_num, const float *pOrigin, edict_t *
 		svgame.msg_index = i;
 	}
 
-	BF_WriteByte( &sv.multicast, msg_num );
+	MSG_WriteByte( &sv.multicast, msg_num );
 
 	// save message destination
 	if( pOrigin ) VectorCopy( pOrigin, svgame.msg_org );
@@ -2512,8 +2512,8 @@ void pfnMessageBegin( int msg_dest, int msg_num, const float *pOrigin, edict_t *
 	if( iSize == -1 )
 	{
 		// variable sized messages sent size as first byte
-		svgame.msg_size_index = BF_GetNumBytesWritten( &sv.multicast );
-		BF_WriteByte( &sv.multicast, 0 ); // reserve space for now
+		svgame.msg_size_index = MSG_GetNumBytesWritten( &sv.multicast );
+		MSG_WriteByte( &sv.multicast, 0 ); // reserve space for now
 	}
 	else svgame.msg_size_index = -1; // message has constant size
 
@@ -2540,7 +2540,7 @@ void pfnMessageEnd( void )
 	// HACKHACK: clearing HudText in background mode
 	if( sv.background && svgame.msg_index >= 0 && svgame.msg[svgame.msg_index].number == svgame.gmsgHudText )
 	{
-		BF_Clear( &sv.multicast );
+		MSG_Clear( &sv.multicast );
 		return;
 	}
 
@@ -2553,13 +2553,13 @@ void pfnMessageEnd( void )
 			if( svgame.msg_realsize > 255 )
 			{
 				MsgDev( D_ERROR, "SV_Message: %s too long (more than 255 bytes)\n", name );
-				BF_Clear( &sv.multicast );
+				MSG_Clear( &sv.multicast );
 				return;
 			}
 			else if( svgame.msg_realsize < 0 )
 			{
 				MsgDev( D_ERROR, "SV_Message: %s writes NULL message\n", name );
-				BF_Clear( &sv.multicast );
+				MSG_Clear( &sv.multicast );
 				return;
 			}
 		}
@@ -2575,7 +2575,7 @@ void pfnMessageEnd( void )
 		if( expsize != realsize )
 		{
 			MsgDev( D_ERROR, "SV_Message: %s expected %i bytes, it written %i. Ignored.\n", name, expsize, realsize );
-			BF_Clear( &sv.multicast );
+			MSG_Clear( &sv.multicast );
 			return;
 		}
 	}
@@ -2585,13 +2585,13 @@ void pfnMessageEnd( void )
 		if( svgame.msg_realsize > 255 )
 		{
 			MsgDev( D_ERROR, "SV_Message: %s too long (more than 255 bytes)\n", name );
-			BF_Clear( &sv.multicast );
+			MSG_Clear( &sv.multicast );
 			return;
 		}
 		else if( svgame.msg_realsize < 0 )
 		{
 			MsgDev( D_ERROR, "SV_Message: %s writes NULL message\n", name );
-			BF_Clear( &sv.multicast );
+			MSG_Clear( &sv.multicast );
 			return;
 		}
 
@@ -2601,7 +2601,7 @@ void pfnMessageEnd( void )
 	{
 		// this should never happen
 		MsgDev( D_ERROR, "SV_Message: %s have encountered error\n", name );
-		BF_Clear( &sv.multicast );
+		MSG_Clear( &sv.multicast );
 		return;
 	}
 
@@ -2609,9 +2609,9 @@ void pfnMessageEnd( void )
 	{
 		// oldstyle message for svc_studiodecal has missed four additional bytes:
 		// modelIndex, skin and body. Write it here for backward compatibility
-		BF_WriteWord( &sv.multicast, 0 );
-		BF_WriteByte( &sv.multicast, 0 );
-		BF_WriteByte( &sv.multicast, 0 );
+		MSG_WriteWord( &sv.multicast, 0 );
+		MSG_WriteByte( &sv.multicast, 0 );
+		MSG_WriteByte( &sv.multicast, 0 );
 	}
 
 	if( !VectorIsNull( svgame.msg_org )) org = svgame.msg_org;
@@ -2629,7 +2629,7 @@ pfnWriteByte
 void pfnWriteByte( int iValue )
 {
 	if( iValue == -1 ) iValue = 0xFF; // convert char to byte 
-	BF_WriteByte( &sv.multicast, (byte)iValue );
+	MSG_WriteByte( &sv.multicast, (byte)iValue );
 	svgame.msg_realsize++;
 }
 
@@ -2641,7 +2641,7 @@ pfnWriteChar
 */
 void pfnWriteChar( int iValue )
 {
-	BF_WriteChar( &sv.multicast, (char)iValue );
+	MSG_WriteChar( &sv.multicast, (char)iValue );
 	svgame.msg_realsize++;
 }
 
@@ -2653,7 +2653,7 @@ pfnWriteShort
 */
 void pfnWriteShort( int iValue )
 {
-	BF_WriteShort( &sv.multicast, (short)iValue );
+	MSG_WriteShort( &sv.multicast, (short)iValue );
 	svgame.msg_realsize += 2;
 }
 
@@ -2665,7 +2665,7 @@ pfnWriteLong
 */
 void pfnWriteLong( int iValue )
 {
-	BF_WriteLong( &sv.multicast, iValue );
+	MSG_WriteLong( &sv.multicast, iValue );
 	svgame.msg_realsize += 4;
 }
 
@@ -2680,7 +2680,7 @@ void pfnWriteAngle( float flValue )
 {
 	int	iAngle = ((int)(( flValue ) * 256 / 360) & 255);
 
-	BF_WriteChar( &sv.multicast, iAngle );
+	MSG_WriteChar( &sv.multicast, iAngle );
 	svgame.msg_realsize += 1;
 }
 
@@ -2692,7 +2692,7 @@ pfnWriteCoord
 */
 void pfnWriteCoord( float flValue )
 {
-	BF_WriteCoord( &sv.multicast, flValue );
+	MSG_WriteCoord( &sv.multicast, flValue );
 	svgame.msg_realsize += 2;
 }
 
@@ -2711,7 +2711,7 @@ void pfnWriteString( const char *src )
 	if( len >= rem )
 	{
 		MsgDev( D_ERROR, "pfnWriteString: exceeds %i symbols\n", rem );
-		BF_WriteChar( &sv.multicast, 0 );
+		MSG_WriteChar( &sv.multicast, 0 );
 		svgame.msg_realsize += 1; 
 		return;
 	}
@@ -2745,7 +2745,7 @@ void pfnWriteString( const char *src )
 	}
 
 	*dst = '\0'; // string end (not included in count)
-	BF_WriteString( &sv.multicast, string );
+	MSG_WriteString( &sv.multicast, string );
 
 	// NOTE: some messages with constant string length can be marked as known sized
 	svgame.msg_realsize += len;
@@ -2760,8 +2760,8 @@ pfnWriteEntity
 void pfnWriteEntity( int iValue )
 {
 	if( iValue < 0 || iValue >= svgame.numEntities )
-		Host_Error( "BF_WriteEntity: invalid entnumber %i\n", iValue );
-	BF_WriteShort( &sv.multicast, (short)iValue );
+		Host_Error( "MSG_WriteEntity: invalid entnumber %i\n", iValue );
+	MSG_WriteShort( &sv.multicast, (short)iValue );
 	svgame.msg_realsize += 2;
 }
 
@@ -3111,10 +3111,10 @@ int pfnRegUserMsg( const char *pszName, int iSize )
 	if( sv.state == ss_active )
 	{
 		// tell the client about new user message
-		BF_WriteByte( &sv.multicast, svc_usermessage );
-		BF_WriteByte( &sv.multicast, svgame.msg[i].number );
-		BF_WriteByte( &sv.multicast, (byte)iSize );
-		BF_WriteString( &sv.multicast, svgame.msg[i].name );
+		MSG_WriteByte( &sv.multicast, svc_usermessage );
+		MSG_WriteByte( &sv.multicast, svgame.msg[i].number );
+		MSG_WriteByte( &sv.multicast, (byte)iSize );
+		MSG_WriteString( &sv.multicast, svgame.msg[i].name );
 		SV_Send( MSG_ALL, NULL, NULL );
 	}
 
@@ -3207,8 +3207,8 @@ void pfnClientPrintf( edict_t* pEdict, PRINT_TYPE ptype, const char *szMsg )
 		break;
 	case print_center:
 		if( client->fakeclient ) return;
-		BF_WriteByte( &client->netchan.message, svc_centerprint );
-		BF_WriteString( &client->netchan.message, szMsg );
+		MSG_WriteByte( &client->netchan.message, svc_centerprint );
+		MSG_WriteString( &client->netchan.message, szMsg );
 		break;
 	}
 }
@@ -3280,9 +3280,9 @@ void pfnCrosshairAngle( const edict_t *pClient, float pitch, float yaw )
 	if( yaw > 180.0f ) yaw -= 360;
 	if( yaw < -180.0f ) yaw += 360;
 
-	BF_WriteByte( &client->netchan.message, svc_crosshairangle );
-	BF_WriteChar( &client->netchan.message, pitch * 5 );
-	BF_WriteChar( &client->netchan.message, yaw * 5 );
+	MSG_WriteByte( &client->netchan.message, svc_crosshairangle );
+	MSG_WriteChar( &client->netchan.message, pitch * 5 );
+	MSG_WriteChar( &client->netchan.message, yaw * 5 );
 }
 
 /*
@@ -3319,8 +3319,8 @@ void pfnSetView( const edict_t *pClient, const edict_t *pViewent )
 	// fakeclients ignore to send client message (but can see into the trigger_camera through the PVS)
 	if( client->fakeclient ) return;
 
-	BF_WriteByte( &client->netchan.message, svc_setview );
-	BF_WriteWord( &client->netchan.message, NUM_FOR_EDICT( pViewent ));
+	MSG_WriteByte( &client->netchan.message, svc_setview );
+	MSG_WriteWord( &client->netchan.message, NUM_FOR_EDICT( pViewent ));
 }
 
 /*
@@ -3430,11 +3430,11 @@ void pfnFadeClientVolume( const edict_t *pEdict, int fadePercent, int fadeOutSec
 
 	if( cl->fakeclient ) return;
 
-	BF_WriteByte( &cl->netchan.message, svc_soundfade );
-	BF_WriteByte( &cl->netchan.message, fadePercent );
-	BF_WriteByte( &cl->netchan.message, holdTime );
-	BF_WriteByte( &cl->netchan.message, fadeOutSeconds );
-	BF_WriteByte( &cl->netchan.message, fadeInSeconds );
+	MSG_WriteByte( &cl->netchan.message, svc_soundfade );
+	MSG_WriteByte( &cl->netchan.message, fadePercent );
+	MSG_WriteByte( &cl->netchan.message, holdTime );
+	MSG_WriteByte( &cl->netchan.message, fadeOutSeconds );
+	MSG_WriteByte( &cl->netchan.message, fadeInSeconds );
 }
 
 /*
@@ -3487,7 +3487,7 @@ void pfnRunPlayerMove( edict_t *pClient, const float *v_angle, float fmove, floa
 	svs.currentPlayerNum = (svs.currentPlayer - svs.clients);
 	svs.currentPlayer->timebase = (sv.time + host.frametime) - (msec / 1000.0f);
 
-	Q_memset( &cmd, 0, sizeof( cmd ));
+	memset( &cmd, 0, sizeof( cmd ));
 	if( v_angle ) VectorCopy( v_angle, cmd.viewangles );
 	cmd.forwardmove = fmove;
 	cmd.sidemove = smove;
@@ -3679,7 +3679,7 @@ void SV_PlaybackEventFull( int flags, const edict_t *pInvoker, word eventindex, 
 		return;		
 	}
 
-	Q_memset( &args, 0, sizeof( args ));
+	memset( &args, 0, sizeof( args ));
 
 	if( origin && !VectorIsNull( origin ))
 	{
@@ -3893,7 +3893,7 @@ byte *pfnSetFatPVS( const float *org )
 		else VectorCopy( org, viewPos );
 
 		// build a new PVS frame
-		Q_memset( bitvector, 0, fatbytes );
+		memset( bitvector, 0, fatbytes );
 
 		SV_AddToFatPVS( viewPos, DVIS_PVS, sv.worldmodel->nodes );
 		VectorCopy( viewPos, viewPoint[svs.currentPlayerNum] );
@@ -3945,7 +3945,7 @@ byte *pfnSetFatPAS( const float *org )
 		else VectorCopy( org, viewPos );
 
 		// build a new PHS frame
-		Q_memset( bitvector, 0, fatbytes );
+		memset( bitvector, 0, fatbytes );
 
 		SV_AddToFatPVS( viewPos, DVIS_PHS, sv.worldmodel->nodes );
 	}
@@ -4312,8 +4312,8 @@ void pfnQueryClientCvarValue( const edict_t *player, const char *cvarName )
 
 	if(( cl = SV_ClientFromEdict( player, true )) != NULL )
 	{
-		BF_WriteByte( &cl->netchan.message, svc_querycvarvalue );
-		BF_WriteString( &cl->netchan.message, cvarName );
+		MSG_WriteByte( &cl->netchan.message, svc_querycvarvalue );
+		MSG_WriteString( &cl->netchan.message, cvarName );
 	}
 	else
 	{
@@ -4342,9 +4342,9 @@ void pfnQueryClientCvarValue2( const edict_t *player, const char *cvarName, int 
 
 	if(( cl = SV_ClientFromEdict( player, true )) != NULL )
 	{
-		BF_WriteByte( &cl->netchan.message, svc_querycvarvalue2 );
-		BF_WriteLong( &cl->netchan.message, requestID );
-		BF_WriteString( &cl->netchan.message, cvarName );
+		MSG_WriteByte( &cl->netchan.message, svc_querycvarvalue2 );
+		MSG_WriteLong( &cl->netchan.message, requestID );
+		MSG_WriteString( &cl->netchan.message, cvarName );
 	}
 	else
 	{
@@ -4789,7 +4789,7 @@ void SV_UnloadProgs( void )
 
 	Com_FreeLibrary( svgame.hInstance );
 	Mem_FreePool( &svgame.mempool );
-	Q_memset( &svgame, 0, sizeof( svgame ));
+	memset( &svgame, 0, sizeof( svgame ));
 }
 
 qboolean SV_LoadProgs( const char *name )
@@ -4814,13 +4814,13 @@ qboolean SV_LoadProgs( const char *name )
 	if( !svgame.hInstance ) return false;
 
 	// make sure what new dll functions is cleared
-	Q_memset( &svgame.dllFuncs2, 0, sizeof( svgame.dllFuncs2 ));
+	memset( &svgame.dllFuncs2, 0, sizeof( svgame.dllFuncs2 ));
 
 	// make sure what physic functions is cleared
-	Q_memset( &svgame.physFuncs, 0, sizeof( svgame.physFuncs ));
+	memset( &svgame.physFuncs, 0, sizeof( svgame.physFuncs ));
 
 	// make local copy of engfuncs to prevent overwrite it with bots.dll
-	Q_memcpy( &gpEngfuncs, &gEngfuncs, sizeof( gpEngfuncs ));
+	memcpy( &gpEngfuncs, &gEngfuncs, sizeof( gpEngfuncs ));
 
 	GetEntityAPI = (APIFUNCTION)Com_GetProcAddress( svgame.hInstance, "GetEntityAPI" );
 	GetEntityAPI2 = (APIFUNCTION2)Com_GetProcAddress( svgame.hInstance, "GetEntityAPI2" );
@@ -4855,7 +4855,7 @@ qboolean SV_LoadProgs( const char *name )
 		{
 			if( version != NEW_DLL_FUNCTIONS_VERSION )
 				MsgDev( D_WARN, "SV_LoadProgs: new interface version %i should be %i\n", NEW_DLL_FUNCTIONS_VERSION, version );
-			Q_memset( &svgame.dllFuncs2, 0, sizeof( svgame.dllFuncs2 ));
+			memset( &svgame.dllFuncs2, 0, sizeof( svgame.dllFuncs2 ));
 		}
 	}
 

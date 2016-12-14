@@ -32,7 +32,7 @@ void SV_ClearPhysEnts( void )
 
 void SV_ConvertPMTrace( trace_t *out, pmtrace_t *in, edict_t *ent )
 {
-	Q_memcpy( out, in, 48 ); // matched
+	memcpy( out, in, 48 ); // matched
 	out->hitgroup = in->hitgroup;
 	out->ent = ent;
 }
@@ -119,8 +119,8 @@ qboolean SV_CopyEdictToPhysEnt( physent_t *pe, edict_t *ed )
 	pe->frame = ed->v.frame;
 	pe->sequence = ed->v.sequence;
 
-	Q_memcpy( &pe->controller[0], &ed->v.controller[0], 4 * sizeof( byte ));
-	Q_memcpy( &pe->blending[0], &ed->v.blending[0], 2 * sizeof( byte ));
+	memcpy( &pe->controller[0], &ed->v.controller[0], 4 * sizeof( byte ));
+	memcpy( &pe->blending[0], &ed->v.blending[0], 2 * sizeof( byte ));
 
 	pe->movetype = ed->v.movetype;
 	pe->takedamage = ed->v.takedamage;
@@ -321,15 +321,15 @@ static void pfnParticle( float *origin, int color, float life, int zpos, int zve
 		return;
 	}
 
-	BF_WriteByte( &sv.reliable_datagram, svc_particle );
-	BF_WriteVec3Coord( &sv.reliable_datagram, origin );
-	BF_WriteChar( &sv.reliable_datagram, 0 ); // no x-vel
-	BF_WriteChar( &sv.reliable_datagram, 0 ); // no y-vel
+	MSG_WriteByte( &sv.reliable_datagram, svc_particle );
+	MSG_WriteVec3Coord( &sv.reliable_datagram, origin );
+	MSG_WriteChar( &sv.reliable_datagram, 0 ); // no x-vel
+	MSG_WriteChar( &sv.reliable_datagram, 0 ); // no y-vel
 	v = bound( -128, (zpos * zvel) * 16.0f, 127 );
-	BF_WriteChar( &sv.reliable_datagram, v ); // write z-vel
-	BF_WriteByte( &sv.reliable_datagram, 1 );
-	BF_WriteByte( &sv.reliable_datagram, color );
-	BF_WriteByte( &sv.reliable_datagram, bound( 0, life * 8, 255 ));
+	MSG_WriteChar( &sv.reliable_datagram, v ); // write z-vel
+	MSG_WriteByte( &sv.reliable_datagram, 1 );
+	MSG_WriteByte( &sv.reliable_datagram, color );
+	MSG_WriteByte( &sv.reliable_datagram, bound( 0, life * 8, 255 ));
 }
 
 static int pfnTestPlayerPosition( float *pos, pmtrace_t *ptrace )
@@ -570,8 +570,8 @@ void SV_InitClientMove( void )
 			svgame.player_maxs[i][0], svgame.player_maxs[i][1], svgame.player_maxs[i][2] );
 	}
 
-	Q_memcpy( svgame.pmove->player_mins, svgame.player_mins, sizeof( svgame.player_mins ));
-	Q_memcpy( svgame.pmove->player_maxs, svgame.player_maxs, sizeof( svgame.player_maxs ));
+	memcpy( svgame.pmove->player_mins, svgame.player_mins, sizeof( svgame.player_mins ));
+	memcpy( svgame.pmove->player_maxs, svgame.player_maxs, sizeof( svgame.player_maxs ));
 
 	// common utilities
 	svgame.pmove->PM_Info_ValueForKey = Info_ValueForKey;
@@ -815,7 +815,7 @@ void SV_SetupMoveInterpolant( sv_client_t *cl )
 	sv_client_t	*check;
 	sv_interp_t	*lerp;
 
-	Q_memset( svgame.interp, 0, sizeof( svgame.interp ));
+	memset( svgame.interp, 0, sizeof( svgame.interp ));
 	has_update = false;
 
 	// don't allow unlag in singleplayer
@@ -900,7 +900,7 @@ void SV_SetupMoveInterpolant( sv_client_t *cl )
 
 	if( i == SV_UPDATE_BACKUP || finalpush - frame->senttime > 1.0 )
 	{
-		Q_memset( svgame.interp, 0, sizeof( svgame.interp ));
+		memset( svgame.interp, 0, sizeof( svgame.interp ));
 		has_update = false;
 		return;
 	}

@@ -730,7 +730,7 @@ void CL_FlushEntityPacket( sizebuf_t *msg )
 	entity_state_t	from, to;
 
 	MsgDev( D_INFO, "FlushEntityPacket()\n" );
-	Q_memset( &from, 0, sizeof( from ));
+	memset( &from, 0, sizeof( from ));
 
 	cl.frames[cl.parsecountmod].valid = false;
 	cl.validsequence = 0; // can't render a frame
@@ -738,10 +738,10 @@ void CL_FlushEntityPacket( sizebuf_t *msg )
 	// read it all, but ignore it
 	while( 1 )
 	{
-		newnum = BF_ReadWord( msg );
+		newnum = MSG_ReadWord( msg );
 		if( !newnum ) break; // done
 
-		if( BF_CheckOverflow( msg ))
+		if( MSG_CheckOverflow( msg ))
 			Host_Error( "CL_FlushEntityPacket: read overflow\n" );
 
 		MSG_ReadDeltaEntity( msg, &from, &to, newnum, CL_IsPlayerIndex( newnum ), cl.mtime[0] );
@@ -770,7 +770,7 @@ void CL_ParsePacketEntities( sizebuf_t *msg, qboolean delta )
 		CL_WriteDemoJumpTime();
 
 	// first, allocate packet for new frame
-	count = BF_ReadWord( msg );
+	count = MSG_ReadWord( msg );
 
 	newframe = &cl.frames[cl.parsecountmod];
 
@@ -783,7 +783,7 @@ void CL_ParsePacketEntities( sizebuf_t *msg, qboolean delta )
 	{
 		int	subtracted;
 
-		oldpacket = BF_ReadByte( msg );
+		oldpacket = MSG_ReadByte( msg );
 		subtracted = ((( cls.netchan.incoming_sequence & 0xFF ) - oldpacket ) & 0xFF );
 
 		if( subtracted == 0 )
@@ -843,10 +843,10 @@ void CL_ParsePacketEntities( sizebuf_t *msg, qboolean delta )
 
 	while( 1 )
 	{
-		newnum = BF_ReadWord( msg );
+		newnum = MSG_ReadWord( msg );
 		if( !newnum ) break; // end of packet entities
 
-		if( BF_CheckOverflow( msg ))
+		if( MSG_CheckOverflow( msg ))
 			Host_Error( "CL_ParsePacketEntities: read overflow\n" );
 
 		while( oldnum < newnum )

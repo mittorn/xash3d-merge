@@ -26,7 +26,7 @@ CL_ResetEvent
 */
 void CL_ResetEvent( event_info_t *ei )
 {
-	Q_memset( ei, 0, sizeof( *ei ));
+	memset( ei, 0, sizeof( *ei ));
 }
 
 /*
@@ -111,7 +111,7 @@ void CL_RegisterEvent( int lastnum, const char *szEvName, pfnEventHook func )
 	// clear existing or allocate new one
 	if( !clgame.events[lastnum] )
 		clgame.events[lastnum] = Mem_Alloc( cls.mempool, sizeof( cl_user_event_t ));
-	else Q_memset( clgame.events[lastnum], 0, sizeof( cl_user_event_t ));
+	else memset( clgame.events[lastnum], 0, sizeof( cl_user_event_t ));
 
 	ev = clgame.events[lastnum];
 
@@ -300,12 +300,12 @@ void CL_ParseReliableEvent( sizebuf_t *msg )
 	float		delay = 0.0f;
 	cl_entity_t	*pEnt;
 
-	Q_memset( &nullargs, 0, sizeof( nullargs ));
+	memset( &nullargs, 0, sizeof( nullargs ));
 
-	event_index = BF_ReadUBitLong( msg, MAX_EVENT_BITS );
+	event_index = MSG_ReadUBitLong( msg, MAX_EVENT_BITS );
 
-	if( BF_ReadOneBit( msg ))
-		delay = (float)BF_ReadWord( msg ) * (1.0f / 100.0f);
+	if( MSG_ReadOneBit( msg ))
+		delay = (float)MSG_ReadWord( msg ) * (1.0f / 100.0f);
 
 	// reliable events not use delta-compression just null-compression
 	MSG_ReadDeltaEvent( msg, &nullargs, &args );
@@ -341,22 +341,22 @@ void CL_ParseEvent( sizebuf_t *msg )
 	cl_entity_t	*pEnt;
 	float		delay;
 
-	Q_memset( &nullargs, 0, sizeof( nullargs ));
+	memset( &nullargs, 0, sizeof( nullargs ));
 
-	num_events = BF_ReadUBitLong( msg, 5 );
+	num_events = MSG_ReadUBitLong( msg, 5 );
 
 	// parse events queue
 	for( i = 0 ; i < num_events; i++ )
 	{
-		event_index = BF_ReadUBitLong( msg, MAX_EVENT_BITS );
-		Q_memset( &args, 0, sizeof( args ));
+		event_index = MSG_ReadUBitLong( msg, MAX_EVENT_BITS );
+		memset( &args, 0, sizeof( args ));
 		has_update = false;
 
-		if( BF_ReadOneBit( msg ))
+		if( MSG_ReadOneBit( msg ))
 		{
-			packet_ent = BF_ReadUBitLong( msg, MAX_ENTITY_BITS );
+			packet_ent = MSG_ReadUBitLong( msg, MAX_ENTITY_BITS );
 
-			if( BF_ReadOneBit( msg ))
+			if( MSG_ReadOneBit( msg ))
 			{
 				MSG_ReadDeltaEvent( msg, &nullargs, &args );
 				has_update = true;
@@ -416,8 +416,8 @@ void CL_ParseEvent( sizebuf_t *msg )
 				VectorCopy( pEnt->curstate.velocity, args.velocity );
 		}
 
-		if( BF_ReadOneBit( msg ))
-			delay = (float)BF_ReadWord( msg ) * (1.0f / 100.0f);
+		if( MSG_ReadOneBit( msg ))
+			delay = (float)MSG_ReadWord( msg ) * (1.0f / 100.0f);
 		else delay = 0.0f;
 
 		// g-cont. should we need find the event with same index?

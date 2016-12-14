@@ -58,7 +58,7 @@ Cbuf_Clear
 */
 void Cbuf_Clear( void )
 {
-	Q_memset( cmd_text.data, 0, sizeof( cmd_text_buf ));
+	memset( cmd_text.data, 0, sizeof( cmd_text_buf ));
 	cmd_text.cursize = 0;
 }
 
@@ -102,7 +102,7 @@ void Cbuf_AddText( const char *text )
 		return;
 	}
 
-	Q_memcpy( Cbuf_GetSpace( &cmd_text, l ), text, l ); 
+	memcpy( Cbuf_GetSpace( &cmd_text, l ), text, l ); 
 }
 
 /*
@@ -124,7 +124,7 @@ void Cbuf_InsertText( const char *text )
 	if( templen )
 	{
 		temp = Z_Malloc( templen );
-		Q_memcpy( temp, cmd_text.data, templen );
+		memcpy( temp, cmd_text.data, templen );
 		cmd_text.cursize = 0;
 	}
 	else temp = NULL;
@@ -135,7 +135,7 @@ void Cbuf_InsertText( const char *text )
 	// add the copied off data
 	if( templen )
 	{
-		Q_memcpy( Cbuf_GetSpace( &cmd_text, templen ), temp, templen ); 
+		memcpy( Cbuf_GetSpace( &cmd_text, templen ), temp, templen ); 
 		Z_Free( temp );
 	}
 }
@@ -170,7 +170,7 @@ void Cbuf_Execute( void )
 		if( i >= ( MAX_CMD_LINE - 1 ))
 			Sys_Error( "Cbuf_Execute: command string owerflow\n" );
 
-		Q_memcpy( line, text, i );
+		memcpy( line, text, i );
 		line[i] = 0;
 
 		// delete the text from the command buffer and move remaining commands down
@@ -184,7 +184,7 @@ void Cbuf_Execute( void )
 		{
 			i++;
 			cmd_text.cursize -= i;
-			Q_memcpy( text, text + i, cmd_text.cursize );
+			memcpy( text, text + i, cmd_text.cursize );
 		}
 
 		// execute the command line
@@ -776,7 +776,7 @@ void Cmd_ForwardToServer( void )
 		return; // not connected
 	}
 
-	BF_WriteByte( &cls.netchan.message, clc_stringcmd );
+	MSG_WriteByte( &cls.netchan.message, clc_stringcmd );
 
 	str[0] = 0;
 	if( Q_stricmp( Cmd_Argv( 0 ), "cmd" ))
@@ -789,7 +789,7 @@ void Cmd_ForwardToServer( void )
 		Q_strcat( str, Cmd_Args( ));
 	else Q_strcat( str, "\n" );
 
-	BF_WriteString( &cls.netchan.message, str );
+	MSG_WriteString( &cls.netchan.message, str );
 }
 
 /*

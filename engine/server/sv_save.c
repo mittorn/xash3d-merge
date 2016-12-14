@@ -232,7 +232,7 @@ qboolean SaveRestore_Write( SAVERESTOREDATA *pSaveData, const void *pData, int n
 		return false;
 	}
 
-	Q_memcpy( pSaveData->pCurrentData, pData, nBytes );
+	memcpy( pSaveData->pCurrentData, pData, nBytes );
 	SaveRestore_MoveCurPos( pSaveData, nBytes );
 
 	return true;
@@ -249,7 +249,7 @@ qboolean SaveRestore_Read( SAVERESTOREDATA *pSaveData, void *pOutput, int nBytes
 		return false;
 	}
 
-	if( pOutput ) Q_memcpy( pOutput, pSaveData->pCurrentData, nBytes );
+	if( pOutput ) memcpy( pOutput, pSaveData->pCurrentData, nBytes );
 	SaveRestore_MoveCurPos( pSaveData, nBytes );
 
 	return true;
@@ -505,7 +505,7 @@ void RestoreSound( soundlist_t *entry )
 	edict_t	*ent;
 
 	// this can happens if serialized map contain 4096 static decals...
-	if(( BF_GetNumBytesWritten( &sv.signon ) + 20 ) >= BF_GetMaxBytes( &sv.signon ))
+	if(( MSG_GetNumBytesWritten( &sv.signon ) + 20 ) >= MSG_GetMaxBytes( &sv.signon ))
 		return;
 
 	if( entry->name[0] == '!' && Q_isdigit( entry->name + 1 ))
@@ -552,24 +552,24 @@ void RestoreSound( soundlist_t *entry )
 
 	if( soundIndex > 255 ) flags |= SND_LARGE_INDEX;
 
-	BF_WriteByte( &sv.signon, svc_restoresound );
-	BF_WriteWord( &sv.signon, flags );
+	MSG_WriteByte( &sv.signon, svc_restoresound );
+	MSG_WriteWord( &sv.signon, flags );
 	if( flags & SND_LARGE_INDEX )
-		BF_WriteWord( &sv.signon, soundIndex );
-	else BF_WriteByte( &sv.signon, soundIndex );
-	BF_WriteByte( &sv.signon, entry->channel );
+		MSG_WriteWord( &sv.signon, soundIndex );
+	else MSG_WriteByte( &sv.signon, soundIndex );
+	MSG_WriteByte( &sv.signon, entry->channel );
 
-	if( flags & SND_VOLUME ) BF_WriteByte( &sv.signon, entry->volume * 255 );
-	if( flags & SND_ATTENUATION ) BF_WriteByte( &sv.signon, entry->attenuation * 64 );
-	if( flags & SND_PITCH ) BF_WriteByte( &sv.signon, entry->pitch );
+	if( flags & SND_VOLUME ) MSG_WriteByte( &sv.signon, entry->volume * 255 );
+	if( flags & SND_ATTENUATION ) MSG_WriteByte( &sv.signon, entry->attenuation * 64 );
+	if( flags & SND_PITCH ) MSG_WriteByte( &sv.signon, entry->pitch );
 
-	BF_WriteWord( &sv.signon, entry->entnum );
-	BF_WriteVec3Coord( &sv.signon, entry->origin );
-	BF_WriteByte( &sv.signon, entry->wordIndex );
+	MSG_WriteWord( &sv.signon, entry->entnum );
+	MSG_WriteVec3Coord( &sv.signon, entry->origin );
+	MSG_WriteByte( &sv.signon, entry->wordIndex );
 
 	// send two doubles as raw-data
-	BF_WriteBytes( &sv.signon, &entry->samplePos, sizeof( entry->samplePos ));
-	BF_WriteBytes( &sv.signon, &entry->forcedEnd, sizeof( entry->forcedEnd ));
+	MSG_WriteBytes( &sv.signon, &entry->samplePos, sizeof( entry->samplePos ));
+	MSG_WriteBytes( &sv.signon, &entry->forcedEnd, sizeof( entry->forcedEnd ));
 }
 
 void SV_ClearSaveDir( void )
@@ -974,7 +974,7 @@ void SV_ParseSaveTables( SAVERESTOREDATA *pSaveData, SAVE_HEADER *pHeader, int s
 	}
 
 	if( setupLightstyles )
-		Q_memset( sv.lightstyles, 0, sizeof( sv.lightstyles ));
+		memset( sv.lightstyles, 0, sizeof( sv.lightstyles ));
 
 	for( i = 0; i < pHeader->lightStyleCount; i++ )
 	{
@@ -1083,7 +1083,7 @@ void SV_SaveClientState( SAVERESTOREDATA *pSaveData, const char *level )
 	FS_Write( pFile, &id, sizeof( int ));
 	FS_Write( pFile, &version, sizeof( int ));
 
-	Q_memset( &sections, -1, sizeof( sections ));
+	memset( &sections, -1, sizeof( sections ));
 	header_offset = FS_Tell( pFile );	// save header offset
 
 	// write offsets (will be merged later)
@@ -1321,7 +1321,7 @@ void SV_LoadClientState( SAVERESTOREDATA *pSaveData, const char *level, qboolean
 		FS_Read( pFile, &sv.num_static_entities, sizeof( int ));
 
 		// clear old entities
-		Q_memset( sv.static_entities, 0, sizeof( sv.static_entities ));
+		memset( sv.static_entities, 0, sizeof( sv.static_entities ));
 
 		for( i = 0; i < sv.num_static_entities; i++ )
 		{
@@ -1411,8 +1411,8 @@ void SV_LoadClientState( SAVERESTOREDATA *pSaveData, const char *level, qboolean
 		// read current track position
 		FS_Read( pFile, &position, sizeof( position ));
 
-		BF_WriteByte( &sv.signon, svc_stufftext );
-		BF_WriteString( &sv.signon, va( "music \"%s\" \"%s\" %i\n", curtrack, looptrack, position ));
+		MSG_WriteByte( &sv.signon, svc_stufftext );
+		MSG_WriteString( &sv.signon, va( "music \"%s\" \"%s\" %i\n", curtrack, looptrack, position ));
 	}
 
 	FS_Close( pFile );
@@ -1815,7 +1815,7 @@ void SV_LoadAdjacentEnts( const char *pOldLevel, const char *pLandmarkName )
 	qboolean		foundprevious = false;
 	vec3_t		landmarkOrigin;
 	
-	Q_memset( &currentLevelData, 0, sizeof( SAVERESTOREDATA ));
+	memset( &currentLevelData, 0, sizeof( SAVERESTOREDATA ));
 	svgame.globals->pSaveData = &currentLevelData;
 
 	// build the adjacent map list
@@ -2241,9 +2241,9 @@ void SV_SaveGame( const char *pName )
 
 		if(( cl = SV_ClientFromEdict( EDICT_NUM( 1 ), true )) != NULL )
 		{
-			BF_WriteByte( &cl->netchan.message, svgame.gmsgHudText );
-			BF_WriteByte( &cl->netchan.message, Q_strlen( pMsg ) + 1 );
-			BF_WriteString( &cl->netchan.message, pMsg );
+			MSG_WriteByte( &cl->netchan.message, svgame.gmsgHudText );
+			MSG_WriteByte( &cl->netchan.message, Q_strlen( pMsg ) + 1 );
+			MSG_WriteString( &cl->netchan.message, pMsg );
 		}
 	}
 }

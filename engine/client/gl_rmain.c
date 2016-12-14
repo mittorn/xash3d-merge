@@ -1712,7 +1712,7 @@ Initialize client external rendering
 qboolean R_InitRenderAPI( void )
 {
 	// make sure what render functions is cleared
-	Q_memset( &clgame.drawFuncs, 0, sizeof( clgame.drawFuncs ));
+	memset( &clgame.drawFuncs, 0, sizeof( clgame.drawFuncs ));
 
 	if( clgame.dllFuncs.pfnGetRenderInterface )
 	{
@@ -1723,7 +1723,7 @@ qboolean R_InitRenderAPI( void )
 		}
 
 		// make sure what render functions is cleared
-		Q_memset( &clgame.drawFuncs, 0, sizeof( clgame.drawFuncs ));
+		memset( &clgame.drawFuncs, 0, sizeof( clgame.drawFuncs ));
 
 		return false; // just tell user about problems
 	}

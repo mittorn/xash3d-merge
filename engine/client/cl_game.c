@@ -643,7 +643,7 @@ void CL_DrawScreenFade( void )
 	// all done?
 	if(( cl.time > sf->fadeReset ) && ( cl.time > sf->fadeEnd ))
 	{
-		Q_memset( &clgame.fade, 0, sizeof( clgame.fade ));
+		memset( &clgame.fade, 0, sizeof( clgame.fade ));
 		return;
 	}
 
@@ -718,7 +718,7 @@ void CL_ParseTextMessage( sizebuf_t *msg )
 	int			channel;
 
 	// read channel ( 0 - auto)
-	channel = BF_ReadByte( msg );
+	channel = MSG_ReadByte( msg );
 
 	if( channel <= 0 || channel > ( MAX_TEXTCHANNELS - 1 ))
 	{
@@ -731,27 +731,27 @@ void CL_ParseTextMessage( sizebuf_t *msg )
 	// grab message channel
 	text = &cl_textmessage[channel];
 
-	text->x = (float)(BF_ReadShort( msg ) / 8192.0f);
-	text->y = (float)(BF_ReadShort( msg ) / 8192.0f);
-	text->effect = BF_ReadByte( msg );
-	text->r1 = BF_ReadByte( msg );
-	text->g1 = BF_ReadByte( msg );
-	text->b1 = BF_ReadByte( msg );
-	text->a1 = BF_ReadByte( msg );
-	text->r2 = BF_ReadByte( msg );
-	text->g2 = BF_ReadByte( msg );
-	text->b2 = BF_ReadByte( msg );
-	text->a2 = BF_ReadByte( msg );
-	text->fadein = (float)(BF_ReadShort( msg ) / 256.0f );
-	text->fadeout = (float)(BF_ReadShort( msg ) / 256.0f );
-	text->holdtime = (float)(BF_ReadShort( msg ) / 256.0f );
+	text->x = (float)(MSG_ReadShort( msg ) / 8192.0f);
+	text->y = (float)(MSG_ReadShort( msg ) / 8192.0f);
+	text->effect = MSG_ReadByte( msg );
+	text->r1 = MSG_ReadByte( msg );
+	text->g1 = MSG_ReadByte( msg );
+	text->b1 = MSG_ReadByte( msg );
+	text->a1 = MSG_ReadByte( msg );
+	text->r2 = MSG_ReadByte( msg );
+	text->g2 = MSG_ReadByte( msg );
+	text->b2 = MSG_ReadByte( msg );
+	text->a2 = MSG_ReadByte( msg );
+	text->fadein = (float)(MSG_ReadShort( msg ) / 256.0f );
+	text->fadeout = (float)(MSG_ReadShort( msg ) / 256.0f );
+	text->holdtime = (float)(MSG_ReadShort( msg ) / 256.0f );
 
 	if( text->effect == 2 )
-		text->fxtime = (float)(BF_ReadShort( msg ) / 256.0f );
+		text->fxtime = (float)(MSG_ReadShort( msg ) / 256.0f );
 	else text->fxtime = 0.0f;
 
 	// to prevent grab too long messages
-	Q_strncpy( (char *)text->pMessage, BF_ReadString( msg ), 512 ); 		
+	Q_strncpy( (char *)text->pMessage, MSG_ReadString( msg ), 512 ); 		
 
 	// NOTE: a "HudText" message contain only 'string' with message name, so we
 	// don't needs to use MSG_ routines here, just directly write msgname into netbuffer
@@ -1474,7 +1474,7 @@ static int pfnGetScreenInfo( SCREENINFO *pscrinfo )
 		clgame.scrInfo.iSize = pscrinfo->iSize;
 
 	// copy screeninfo out
-	Q_memcpy( pscrinfo, &clgame.scrInfo, clgame.scrInfo.iSize );
+	memcpy( pscrinfo, &clgame.scrInfo, clgame.scrInfo.iSize );
 
 	return 1;
 }
@@ -1583,7 +1583,7 @@ static void pfnGetPlayerInfo( int ent_num, hud_player_info_t *pinfo )
 
 	if( ent_num >= cl.maxclients || ent_num < 0 || !cl.players[ent_num].name[0] )
 	{
-		Q_memset( pinfo, 0, sizeof( *pinfo ));
+		memset( pinfo, 0, sizeof( *pinfo ));
 		return;
 	}
 
@@ -1938,7 +1938,7 @@ void pfnCalcShake( void )
 
 	if(( cl.time > clgame.shake.time ) || clgame.shake.amplitude <= 0 || clgame.shake.frequency <= 0 )
 	{
-		Q_memset( &clgame.shake, 0, sizeof( clgame.shake ));
+		memset( &clgame.shake, 0, sizeof( clgame.shake ));
 		return;
 	}
 
@@ -2681,8 +2681,8 @@ int pfnServerCmdUnreliable( char *szCmdString )
 	if( !szCmdString || !szCmdString[0] )
 		return 0;
 
-	BF_WriteByte( &cls.datagram, clc_stringcmd );
-	BF_WriteString( &cls.datagram, szCmdString );
+	MSG_WriteByte( &cls.datagram, clc_stringcmd );
+	MSG_WriteString( &cls.datagram, szCmdString );
 
 	return 1;
 }
@@ -3455,7 +3455,7 @@ void NetAPI_SendRequest( int context, int request, int flags, double timeout, ne
 	ASSERT( nr != NULL );
 
 	// clear slot
-	Q_memset( nr, 0, sizeof( *nr ));
+	memset( nr, 0, sizeof( *nr ));
 
 	// create a new request
 	nr->timesend = host.realtime;
@@ -3494,7 +3494,7 @@ void NetAPI_CancelRequest( int context )
 		if( clgame.net_requests[i].resp.context == context )
 		{
 			MsgDev( D_NOTE, "Request with context %i cancelled\n", context );
-			Q_memset( &clgame.net_requests[i], 0, sizeof( net_request_t ));
+			memset( &clgame.net_requests[i], 0, sizeof( net_request_t ));
 			break;
 		}
 	}
@@ -3508,7 +3508,7 @@ NetAPI_CancelAllRequests
 */
 void NetAPI_CancelAllRequests( void )
 {
-	Q_memset( clgame.net_requests, 0, sizeof( clgame.net_requests ));
+	memset( clgame.net_requests, 0, sizeof( clgame.net_requests ));
 }
 
 /*
@@ -3970,7 +3970,7 @@ void CL_UnloadProgs( void )
 	Com_FreeLibrary( clgame.hInstance );
 	Mem_FreePool( &cls.mempool );
 	Mem_FreePool( &clgame.mempool );
-	Q_memset( &clgame, 0, sizeof( clgame ));
+	memset( &clgame, 0, sizeof( clgame ));
 
 	Cvar_Unlink();
 	Cmd_Unlink( CMD_CLIENTDLL );

@@ -346,7 +346,7 @@ void R_UnloadSkybox( void )
 
 	tr.skyboxbasenum = 5800;	// set skybox base (to let some mods load hi-res skyboxes)
 
-	Q_memset( tr.skyboxTextures, 0, sizeof( tr.skyboxTextures ));
+	memset( tr.skyboxTextures, 0, sizeof( tr.skyboxTextures ));
 }
 
 /*

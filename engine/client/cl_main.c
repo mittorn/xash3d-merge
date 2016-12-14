@@ -157,7 +157,7 @@ qboolean CL_ChangeGame( const char *gamefolder, qboolean bReset )
 		Q_strncpy( clgame.maptitle, maptitle, MAX_STRING );
 
 		// invalidate fonts so we can reloading them again
-		Q_memset( &cls.creditsFont, 0, sizeof( cls.creditsFont ));
+		memset( &cls.creditsFont, 0, sizeof( cls.creditsFont ));
 		SCR_InstallParticlePalette();
 		SCR_LoadCreditsFont();
 		Con_InvalidateFonts();
@@ -301,7 +301,7 @@ void CL_CreateCmd( void )
 	if( ms > 250 ) ms = 100;	// time was unreasonable
 	else if( ms <= 0 ) ms = 1;	// keep time an actual
 
-	Q_memset( &cmd, 0, sizeof( cmd ));
+	memset( &cmd, 0, sizeof( cmd ));
 
 	// build list of all solid entities per next frame (exclude clients)
 	CL_SetSolidEntities ();
@@ -382,7 +382,7 @@ void CL_WriteUsercmd( sizebuf_t *msg, int from, int to )
 
 	if( from == -1 )
 	{
-		Q_memset( &nullcmd, 0, sizeof( nullcmd ));
+		memset( &nullcmd, 0, sizeof( nullcmd ));
 		f = &nullcmd;
 	}
 	else
@@ -430,7 +430,7 @@ void CL_WritePacket( void )
 		Cvar_SetFloat( "cl_cmdrate", MIN_CMD_RATE );
 	}
 #endif
-	BF_Init( &buf, "ClientData", data, sizeof( data ));
+	MSG_Init( &buf, "ClientData", data, sizeof( data ));
 
 	// Determine number of backup commands to send along
 	numbackup = bound( 0, cl_cmdbackup->integer, MAX_BACKUP_COMMANDS );
@@ -468,8 +468,8 @@ void CL_WritePacket( void )
 	// send a userinfo update if needed
 	if( userinfo->modified )
 	{
-		BF_WriteByte( &cls.netchan.message, clc_userinfo );
-		BF_WriteString( &cls.netchan.message, Cvar_Userinfo( ));
+		MSG_WriteByte( &cls.netchan.message, clc_userinfo );
+		MSG_WriteString( &cls.netchan.message, Cvar_Userinfo( ));
 	}
 		
 	if( send_command )
@@ -488,17 +488,17 @@ void CL_WritePacket( void )
 		else outgoing_sequence = cls.lastoutgoingcommand + 1;
 
 		// begin a client move command
-		BF_WriteByte( &buf, clc_move );
+		MSG_WriteByte( &buf, clc_move );
 
 		// save the position for a checksum byte
-		key = BF_GetRealBytesWritten( &buf );
-		BF_WriteByte( &buf, 0 );
+		key = MSG_GetRealBytesWritten( &buf );
+		MSG_WriteByte( &buf, 0 );
 
 		// write packet lossage percentation
-		BF_WriteByte( &buf, cls.packet_loss );
+		MSG_WriteByte( &buf, cls.packet_loss );
 
 		// say how many backups we'll be sending
-		BF_WriteByte( &buf, numbackup );
+		MSG_WriteByte( &buf, numbackup );
 
 		// how many real commands have queued up
 		newcmds = ( cls.netchan.outgoing_sequence - cls.lastoutgoingcommand );
@@ -507,7 +507,7 @@ void CL_WritePacket( void )
 		newcmds = bound( 0, newcmds, MAX_TOTAL_CMDS );
 		if( cls.state == ca_connected ) newcmds = 0;
 	
-		BF_WriteByte( &buf, newcmds );
+		MSG_WriteByte( &buf, newcmds );
 
 		numcmds = newcmds + numbackup;
 		from = -1;
@@ -521,12 +521,12 @@ void CL_WritePacket( void )
 			CL_WriteUsercmd( &buf, from, to );
 			from = to;
 
-			if( BF_CheckOverflow( &buf ))
+			if( MSG_CheckOverflow( &buf ))
 				Host_Error( "CL_Move, overflowed command buffer (%i bytes)\n", MAX_CMD_BUFFER );
 		}
 
 		// calculate a checksum over the move commands
-		size = BF_GetRealBytesWritten( &buf ) - key - 1;
+		size = MSG_GetRealBytesWritten( &buf ) - key - 1;
 		buf.pData[key] = CRC32_BlockSequence( buf.pData + key + 1, size, cls.netchan.outgoing_sequence );
 
 		// message we are constructing.
@@ -537,8 +537,8 @@ void CL_WritePacket( void )
 		{
 			cl.delta_sequence = cl.validsequence;
 
-			BF_WriteByte( &buf, clc_delta );
-			BF_WriteByte( &buf, cl.validsequence & 0xFF );
+			MSG_WriteByte( &buf, clc_delta );
+			MSG_WriteByte( &buf, cl.validsequence & 0xFF );
 		}
 		else
 		{
@@ -546,7 +546,7 @@ void CL_WritePacket( void )
 			cl.delta_sequence = -1;
 		}
 
-		if( BF_CheckOverflow( &buf ))
+		if( MSG_CheckOverflow( &buf ))
 		{
 			Host_Error( "CL_Move, overflowed command buffer (%i bytes)\n", MAX_CMD_BUFFER );
 		}
@@ -555,15 +555,15 @@ void CL_WritePacket( void )
 		cls.lastoutgoingcommand = cls.netchan.outgoing_sequence;
 
 		// update size counter for netgraph
-		cl.commands[cls.netchan.outgoing_sequence & CL_UPDATE_MASK].sendsize = BF_GetNumBytesWritten( &buf );
+		cl.commands[cls.netchan.outgoing_sequence & CL_UPDATE_MASK].sendsize = MSG_GetNumBytesWritten( &buf );
 
 		// composite the rest of the datagram..
-		if( BF_GetNumBitsWritten( &cls.datagram ) <= BF_GetNumBitsLeft( &buf ))
-			BF_WriteBits( &buf, BF_GetData( &cls.datagram ), BF_GetNumBitsWritten( &cls.datagram ));
-		BF_Clear( &cls.datagram );
+		if( MSG_GetNumBitsWritten( &cls.datagram ) <= MSG_GetNumBitsLeft( &buf ))
+			MSG_WriteBits( &buf, MSG_GetData( &cls.datagram ), MSG_GetNumBitsWritten( &cls.datagram ));
+		MSG_Clear( &cls.datagram );
 
 		// deliver the message (or update reliable)
-		Netchan_Transmit( &cls.netchan, BF_GetNumBytesWritten( &buf ), BF_GetData( &buf ));
+		Netchan_Transmit( &cls.netchan, MSG_GetNumBytesWritten( &buf ), MSG_GetData( &buf ));
 	}
 	else
 	{
@@ -649,7 +649,7 @@ void CL_SendConnectPacket( void )
 		return;
 	}
 
-	if( adr.port == 0 ) adr.port = BF_BigShort( PORT_SERVER );
+	if( adr.port == 0 ) adr.port = MSG_BigShort( PORT_SERVER );
 	port = Cvar_VariableValue( "net_qport" );
 
 	userinfo->modified = false;
@@ -691,7 +691,7 @@ void CL_CheckForResend( void )
 		return;
 	}
 
-	if( adr.port == 0 ) adr.port = BF_BigShort( PORT_SERVER );
+	if( adr.port == 0 ) adr.port = MSG_BigShort( PORT_SERVER );
 	cls.connect_time = host.realtime; // for retransmit requests
 
 	MsgDev( D_NOTE, "Connecting to %s...\n", cls.servername );
@@ -785,7 +785,7 @@ void CL_Rcon_f( void )
 		}
 
 		NET_StringToAdr( rcon_address->string, &to );
-		if( to.port == 0 ) to.port = BF_BigShort( PORT_SERVER );
+		if( to.port == 0 ) to.port = MSG_BigShort( PORT_SERVER );
 	}
 	
 	NET_SendPacket( NS_CLIENT, Q_strlen( message ) + 1, message, to );
@@ -807,10 +807,10 @@ void CL_ClearState( void )
 	CL_ClearPhysEnts ();
 
 	// wipe the entire cl structure
-	Q_memset( &cl, 0, sizeof( cl ));
-	BF_Clear( &cls.netchan.message );
-	Q_memset( &clgame.fade, 0, sizeof( clgame.fade ));
-	Q_memset( &clgame.shake, 0, sizeof( clgame.shake ));
+	memset( &cl, 0, sizeof( cl ));
+	MSG_Clear( &cls.netchan.message );
+	memset( &clgame.fade, 0, sizeof( clgame.fade ));
+	memset( &clgame.shake, 0, sizeof( clgame.shake ));
 	Cvar_FullSet( "cl_background", "0", CVAR_READ_ONLY );
 	cl.refdef.movevars = &clgame.movevars;
 	cl.maxclients = 1; // allow to drawing player in menu
@@ -836,17 +836,17 @@ void CL_SendDisconnectMessage( void )
 
 	if( cls.state == ca_disconnected ) return;
 
-	BF_Init( &buf, "LastMessage", data, sizeof( data ));
-	BF_WriteByte( &buf, clc_stringcmd );
-	BF_WriteString( &buf, "disconnect" );
+	MSG_Init( &buf, "LastMessage", data, sizeof( data ));
+	MSG_WriteByte( &buf, clc_stringcmd );
+	MSG_WriteString( &buf, "disconnect" );
 
 	if( !cls.netchan.remote_address.type )
 		cls.netchan.remote_address.type = NA_LOOPBACK;
 
 	// make sure message will be delivered
-	Netchan_Transmit( &cls.netchan, BF_GetNumBytesWritten( &buf ), BF_GetData( &buf ));
-	Netchan_Transmit( &cls.netchan, BF_GetNumBytesWritten( &buf ), BF_GetData( &buf ));
-	Netchan_Transmit( &cls.netchan, BF_GetNumBytesWritten( &buf ), BF_GetData( &buf ));
+	Netchan_Transmit( &cls.netchan, MSG_GetNumBytesWritten( &buf ), MSG_GetData( &buf ));
+	Netchan_Transmit( &cls.netchan, MSG_GetNumBytesWritten( &buf ), MSG_GetData( &buf ));
+	Netchan_Transmit( &cls.netchan, MSG_GetNumBytesWritten( &buf ), MSG_GetData( &buf ));
 }
 
 /*
@@ -928,7 +928,7 @@ void CL_LocalServers_f( void )
 	
 	// send a broadcast packet
 	adr.type = NA_BROADCAST;
-	adr.port = BF_BigShort( PORT_SERVER );
+	adr.port = MSG_BigShort( PORT_SERVER );
 
 	Netchan_OutOfBandPrint( NS_CLIENT, adr, "info %i", PROTOCOL_VERSION );
 }
@@ -983,7 +983,7 @@ void CL_Packet_f( void )
 		return;
 	}
 
-	if( !adr.port ) adr.port = BF_BigShort( PORT_SERVER );
+	if( !adr.port ) adr.port = MSG_BigShort( PORT_SERVER );
 
 	in = Cmd_Argv( 2 );
 	out = send + 4;
@@ -1026,10 +1026,10 @@ void CL_Reconnect_f( void )
 
 		// clear channel and stuff
 		Netchan_Clear( &cls.netchan );
-		BF_Clear( &cls.netchan.message );
+		MSG_Clear( &cls.netchan.message );
 
-		BF_WriteByte( &cls.netchan.message, clc_stringcmd );
-		BF_WriteString( &cls.netchan.message, "new" );
+		MSG_WriteByte( &cls.netchan.message, clc_stringcmd );
+		MSG_WriteString( &cls.netchan.message, "new" );
 
 		cl.validsequence = 0;		// haven't gotten a valid frame update yet
 		cl.delta_sequence = -1;		// we'll request a full delta from the baseline
@@ -1067,7 +1067,7 @@ void CL_ParseStatusMessage( netadr_t from, sizebuf_t *msg )
 {
 	char	*s;
 
-	s = BF_ReadString( msg );
+	s = MSG_ReadString( msg );
 	UI_AddServerToList( from, s );
 }
 
@@ -1105,11 +1105,11 @@ void CL_ParseNETInfoMessage( netadr_t from, sizebuf_t *msg )
 				nr->pfnFunc( &nr->resp );
 
 				if(!( nr->flags & FNETAPI_MULTIPLE_RESPONSE ))
-					Q_memset( nr, 0, sizeof( *nr )); // done
+					memset( nr, 0, sizeof( *nr )); // done
 			}
 			else
 			{
-				Q_memset( nr, 0, sizeof( *nr )); 
+				memset( nr, 0, sizeof( *nr )); 
 			}
 			return;
 		}
@@ -1214,7 +1214,7 @@ void CL_PrepVideo( void )
 	CL_RegisterMuzzleFlashes ();
 
 	// invalidate all decal indexes
-	Q_memset( cl.decal_index, 0, sizeof( cl.decal_index ));
+	memset( cl.decal_index, 0, sizeof( cl.decal_index ));
 
 	CL_ClearWorld ();
 
@@ -1299,10 +1299,10 @@ void CL_ConnectionlessPacket( netadr_t from, sizebuf_t *msg )
 	int	dataoffset = 0;
 	netadr_t	servadr;
 	
-	BF_Clear( msg );
-	BF_ReadLong( msg ); // skip the -1
+	MSG_Clear( msg );
+	MSG_ReadLong( msg ); // skip the -1
 
-	args = BF_ReadStringLine( msg );
+	args = MSG_ReadStringLine( msg );
 
 	Cmd_TokenizeString( args );
 	c = Cmd_Argv( 0 );
@@ -1319,8 +1319,8 @@ void CL_ConnectionlessPacket( netadr_t from, sizebuf_t *msg )
 		}
 
 		Netchan_Setup( NS_CLIENT, &cls.netchan, from, Cvar_VariableValue( "net_qport" ));
-		BF_WriteByte( &cls.netchan.message, clc_stringcmd );
-		BF_WriteString( &cls.netchan.message, "new" );
+		MSG_WriteByte( &cls.netchan.message, clc_stringcmd );
+		MSG_WriteString( &cls.netchan.message, "new" );
 		cls.state = ca_connected;
 
 		cl.validsequence = 0;		// haven't gotten a valid frame update yet
@@ -1354,14 +1354,14 @@ void CL_ConnectionlessPacket( netadr_t from, sizebuf_t *msg )
 
 		ShowWindow( host.hWnd, SW_RESTORE );
 		SetForegroundWindow ( host.hWnd );
-		args = BF_ReadString( msg );
+		args = MSG_ReadString( msg );
 		Cbuf_AddText( args );
 		Cbuf_AddText( "\n" );
 	}
 	else if( !Q_strcmp( c, "print" ))
 	{
 		// print command from somewhere
-		Msg( "remote: %s\n", BF_ReadString( msg ));
+		Msg( "remote: %s\n", MSG_ReadString( msg ));
 	}
 	else if( !Q_strcmp( c, "ping" ))
 	{
@@ -1393,7 +1393,7 @@ void CL_ConnectionlessPacket( netadr_t from, sizebuf_t *msg )
 		while( 1 )
 		{
 			servadr.type = NA_IP;
-			Q_memcpy( servadr.ip, &msg->pData[dataoffset], sizeof(servadr.ip));
+			memcpy( servadr.ip, &msg->pData[dataoffset], sizeof(servadr.ip));
 			servadr.port = *(word *)&msg->pData[dataoffset + 4];
 
 			if( !servadr.port )
@@ -1448,10 +1448,10 @@ void CL_ReadNetMessage( void )
 
 	while( CL_GetMessage( net_message_buffer, &curSize ))
 	{
-		BF_Init( &net_message, "ServerData", net_message_buffer, curSize );
+		MSG_Init( &net_message, "ServerData", net_message_buffer, curSize );
 
 		// check for connectionless packet (0xffffffff) first
-		if( BF_GetMaxBytes( &net_message ) >= 4 && *(int *)net_message.pData == -1 )
+		if( MSG_GetMaxBytes( &net_message ) >= 4 && *(int *)net_message.pData == -1 )
 		{
 			CL_ConnectionlessPacket( net_from, &net_message );
 			continue;
@@ -1460,7 +1460,7 @@ void CL_ReadNetMessage( void )
 		// can't be a valid sequenced packet	
 		if( cls.state < ca_connected ) continue;
 
-		if( BF_GetMaxBytes( &net_message ) < 8 )
+		if( MSG_GetMaxBytes( &net_message ) < 8 )
 		{
 			MsgDev( D_WARN, "%s: runt packet\n", NET_AdrToString( net_from ));
 			continue;
@@ -1483,7 +1483,7 @@ void CL_ReadNetMessage( void )
 	if( cls.state != ca_disconnected && Netchan_IncomingReady( &cls.netchan ))
 	{
 		// the header is different lengths for reliable and unreliable messages
-		int headerBytes = BF_GetNumBytesRead( &net_message );
+		int headerBytes = MSG_GetNumBytesRead( &net_message );
 
 		// process the incoming buffer(s)
 		if( Netchan_CopyNormalFragments( &cls.netchan, &net_message ))
@@ -1555,8 +1555,8 @@ void CL_ProcessFile( qboolean successfully_received, const char *filename )
 	{
 		MsgDev( D_INFO, "Download completed, resuming connection\n" );
 		FS_Rescan();
-		BF_WriteByte( &cls.netchan.message, clc_stringcmd );
-		BF_WriteString( &cls.netchan.message, "continueloading" );
+		MSG_WriteByte( &cls.netchan.message, clc_stringcmd );
+		MSG_WriteString( &cls.netchan.message, "continueloading" );
 		cls.downloadfileid = 0;
 		cls.downloadcount = 0;
 		return;
@@ -1607,8 +1607,8 @@ void CL_Precache_f( void )
 	CL_PrepSound();
 	CL_PrepVideo();
 
-	BF_WriteByte( &cls.netchan.message, clc_stringcmd );
-	BF_WriteString( &cls.netchan.message, va( "begin %i\n", spawncount ));
+	MSG_WriteByte( &cls.netchan.message, clc_stringcmd );
+	MSG_WriteString( &cls.netchan.message, va( "begin %i\n", spawncount ));
 }
 
 /*
@@ -1837,7 +1837,7 @@ void CL_Init( void )
 	S_Init();	// init sound
 
 	// unreliable buffer. unsed for unreliable commands and voice stream
-	BF_Init( &cls.datagram, "cls.datagram", cls.datagram_buf, sizeof( cls.datagram_buf ));
+	MSG_Init( &cls.datagram, "cls.datagram", cls.datagram_buf, sizeof( cls.datagram_buf ));
 
 	if( !CL_LoadProgs( va( "%s/client.dll", GI->dll_path )))
 		Host_Error( "can't initialize client.dll\n" );

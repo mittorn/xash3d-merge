@@ -209,10 +209,10 @@ void CL_WriteDemoUserCmd( int cmdnumber )
 	FS_Write( cls.demofile, &cmdnumber, sizeof( int ));
 
 	// write usercmd_t
-	BF_Init( &buf, "UserCmd", data, sizeof( data ));
+	MSG_Init( &buf, "UserCmd", data, sizeof( data ));
 	CL_WriteUsercmd( &buf, -1, cmdnumber );	// always no delta
 
-	bytes = BF_GetNumBytesWritten( &buf );
+	bytes = MSG_GetNumBytesWritten( &buf );
 
 	FS_Write( cls.demofile, &bytes, sizeof( word ));
 	FS_Write( cls.demofile, data, bytes );
@@ -258,7 +258,7 @@ void CL_WriteDemoMessage( qboolean startup, int start, sizebuf_t *msg )
 	if( !startup && !cls.demorecording )
 		return;
 
-	swlen = BF_GetNumBytesWritten( msg ) - start;
+	swlen = MSG_GetNumBytesWritten( msg ) - start;
 	if( swlen <= 0 ) return;
 
 	if( !startup )
@@ -277,7 +277,7 @@ void CL_WriteDemoMessage( qboolean startup, int start, sizebuf_t *msg )
 	FS_Write( file, &swlen, sizeof( int ));
 
 	// output the buffer. Skip the network packet stuff.
-	FS_Write( file, BF_GetData( msg ) + start, swlen );
+	FS_Write( file, MSG_GetData( msg ) + start, swlen );
 }
 
 /*
@@ -330,7 +330,7 @@ void CL_WriteDemoHeader( const char *name )
 	cls.demorecording = true;
 	cls.demowaiting = true;	// don't start saving messages until a non-delta compressed message is received
 
-	Q_memset( &demo.header, 0, sizeof( demo.header ));
+	memset( &demo.header, 0, sizeof( demo.header ));
 
 	demo.header.id = IDEMOHEADER;
 	demo.header.dem_protocol = DEMO_PROTOCOL;
@@ -514,8 +514,8 @@ void CL_ReadDemoUserCmd( qboolean discard )
 		usercmd_t	nullcmd;
 		sizebuf_t	buf;
 
-		Q_memset( &nullcmd, 0, sizeof( nullcmd ));
-		BF_Init( &buf, "UserCmd", data, sizeof( data ));
+		memset( &nullcmd, 0, sizeof( nullcmd ));
+		MSG_Init( &buf, "UserCmd", data, sizeof( data ));
 
 		pcmd = &cl.commands[cmdnumber & CL_UPDATE_MASK];
 		pcmd->processedfuncs = false;
