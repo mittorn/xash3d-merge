@@ -308,7 +308,7 @@ pfnPlayerInfo
 static player_info_t *pfnPlayerInfo( int index )
 {
 	if( cls.key_dest == key_menu && !index )
-		return &menu.playerinfo;
+		return &gameui.playerinfo;
 
 	if( index < 0 || index > cl.maxclients )
 		return NULL;
@@ -2444,7 +2444,7 @@ static model_t *R_StudioSetupPlayerModel( int index )
 	if( cls.key_dest == key_menu && !index )
 	{
 		// we are in menu.
-		info = &menu.playerinfo;
+		info = &gameui.playerinfo;
 	}
 	else
 	{

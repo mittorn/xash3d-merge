@@ -621,8 +621,8 @@ void CL_ParseServerData( sizebuf_t *msg )
 
 	cl.refdef.viewentity = cl.playernum + 1; // always keep viewent an actual
 
-	menu.globals->maxClients = cl.maxclients;
-	Q_strncpy( menu.globals->maptitle, clgame.maptitle, sizeof( menu.globals->maptitle ));
+	gameui.globals->maxClients = cl.maxclients;
+	Q_strncpy( gameui.globals->maptitle, clgame.maptitle, sizeof( gameui.globals->maptitle ));
 
 	if( !cls.changelevel && !cls.changedemo )
 		CL_InitEdicts (); // re-arrange edicts
@@ -950,7 +950,7 @@ void CL_UpdateUserinfo( sizebuf_t *msg )
 		player->topcolor = Q_atoi( Info_ValueForKey( player->userinfo, "topcolor" ));
 		player->bottomcolor = Q_atoi( Info_ValueForKey( player->userinfo, "bottomcolor" ));
 
-		if( slot == cl.playernum ) memcpy( &menu.playerinfo, player, sizeof( player_info_t ));
+		if( slot == cl.playernum ) memcpy( &gameui.playerinfo, player, sizeof( player_info_t ));
 	}
 	else memset( player, 0, sizeof( *player ));
 }

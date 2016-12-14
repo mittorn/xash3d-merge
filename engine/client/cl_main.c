@@ -1768,13 +1768,13 @@ void Host_ClientFrame( void )
 	cl.oldtime = cl.time;
 	cl.time += host.frametime;
 
-	if( menu.hInstance )
+	if( gameui.hInstance )
 	{
 		// menu time (not paused, not clamped)
-		menu.globals->time = host.realtime;
-		menu.globals->frametime = host.realframetime;
-		menu.globals->demoplayback = cls.demoplayback;
-		menu.globals->demorecording = cls.demorecording;
+		gameui.globals->time = host.realtime;
+		gameui.globals->frametime = host.realframetime;
+		gameui.globals->demoplayback = cls.demoplayback;
+		gameui.globals->demorecording = cls.demorecording;
 	}
 
 	// if in the debugger last frame, don't timeout

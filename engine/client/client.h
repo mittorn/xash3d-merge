@@ -502,7 +502,7 @@ extern "C" {
 extern client_t		cl;
 extern client_static_t	cls;
 extern clgame_static_t	clgame;
-extern menu_static_t	menu;
+extern menu_static_t	gameui;
 
 #ifdef __cplusplus
 }

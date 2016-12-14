@@ -572,12 +572,12 @@ SCR_VidInit
 void SCR_VidInit( void )
 {
 	memset( &clgame.ds, 0, sizeof( clgame.ds )); // reset a draw state
-	memset( &menu.ds, 0, sizeof( menu.ds )); // reset a draw state
+	memset( &gameui.ds, 0, sizeof( gameui.ds )); // reset a draw state
 	memset( &clgame.centerPrint, 0, sizeof( clgame.centerPrint ));
 
 	// update screen sizes for menu
-	menu.globals->scrWidth = scr_width->integer;
-	menu.globals->scrHeight = scr_height->integer;
+	gameui.globals->scrWidth = scr_width->integer;
+	gameui.globals->scrHeight = scr_height->integer;
 
 	SCR_RebuildGammaTable();
 	VGui_Startup ();
@@ -585,7 +585,7 @@ void SCR_VidInit( void )
 	clgame.load_sequence++; // now all hud sprites are invalid
 	
 	// vid_state has changed
-	if( menu.hInstance ) menu.dllFuncs.pfnVidInit();
+	if( gameui.hInstance ) gameui.dllFuncs.pfnVidInit();
 	if( clgame.hInstance ) clgame.dllFuncs.pfnVidInit();
 
 	// restart console size

@@ -435,7 +435,7 @@ void CL_StopRecord( void )
 	cls.demofile = NULL;
 	cls.demorecording = false;
 	cls.demoname[0] = '\0';
-	menu.globals->demoname[0] = '\0';
+	gameui.globals->demoname[0] = '\0';
 
 	Msg( "Completed demo\n" );
 	MsgDev( D_INFO, "Recording time %.2f\n", cls.demotime );
@@ -802,7 +802,7 @@ void CL_StopPlayback( void )
 	demo.entry = NULL;
 
 	cls.demoname[0] = '\0';	// clear demoname too
-	menu.globals->demoname[0] = '\0';
+	gameui.globals->demoname[0] = '\0';
 
 	S_StopAllSounds();
 	S_StopBackgroundTrack();
@@ -1023,7 +1023,7 @@ void CL_Record_f( void )
 	// write demoshot for preview
 	Cbuf_AddText( va( "demoshot \"%s\"\n", demoname ));
 	Q_strncpy( cls.demoname, demoname, sizeof( cls.demoname ));
-	Q_strncpy( menu.globals->demoname, demoname, sizeof( menu.globals->demoname ));
+	Q_strncpy( gameui.globals->demoname, demoname, sizeof( gameui.globals->demoname ));
 	
 	CL_WriteDemoHeader( demopath );
 }
@@ -1070,7 +1070,7 @@ void CL_PlayDemo_f( void )
 
 	cls.demofile = FS_Open( filename, "rb", true );
 	Q_strncpy( cls.demoname, demoname, sizeof( cls.demoname ));
-	Q_strncpy( menu.globals->demoname, demoname, sizeof( menu.globals->demoname ));
+	Q_strncpy( gameui.globals->demoname, demoname, sizeof( gameui.globals->demoname ));
 
 	// read in the m_DemoHeader
 	FS_Read( cls.demofile, &demo.header, sizeof( demoheader_t ));
